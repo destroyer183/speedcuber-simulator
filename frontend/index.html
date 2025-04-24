@@ -8,9 +8,102 @@
 
     <body>
 
-        <h1>Hello World!</h1>
+        <div id="cube-container">
+            <div id="cube-viewport">
+                <div id="cube">
+                <!-- WHITE (UP) FACE -->            
+                    <!-- LEFT COLUMN (L)  -->
+                    <div class="a-corner cubie white LM UE BS"><div><span>a-corner</span></div></div> 
+                    <div class="d-edge   cubie white LM UE CS"><div><span>d-edge</span></div></div>
+                    <div class="d-corner cubie white LM UE FS"><div><span>d-corner</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->            
+                    <div class="a-edge       cubie white CM UE BS"><div><span>a-edge</span></div></div>
+                    <div class="white-center cubie white CM UE CS"><div><span>white</span></div></div>
+                    <div class="c-edge       cubie white CM UE FS"><div><span>c-edge</span></div></div>
+                    <!-- RIGHT COLUMN (R)  -->
+                    <div class="b-corner cubie white RM UE BS"><div><span>b-corner</span></div></div>
+                    <div class="b-edge   cubie white RM UE CS"><div><span>b-edge</span></div></div>
+                    <div class="c-corner cubie white RM UE FS"><div><span>c-corner</span></div></div>
+                <!-- END WHITE (UP) FACE -->  
 
-        <script src="dist/core/main.js"></script>
+                <!-- ORANGE (LEFT) FACE -->
+                    <!-- LEFT COLUMN (L)  -->           
+                    <div class="e-corner cubie orange LM UE BS"><div><span>e-corner</span></div></div>
+                    <div class="h-edge   cubie orange LM CE BS"><div><span>h-edge</span></div></div>
+                    <div class="h-corner cubie orange LM DE BS"><div><span>L3</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->  
+                    <div class="e-edge        cubie orange LM UE CS"><div><span>e-edge</span></div></div>
+                    <div class="orange-center cubie orange LM CE CS"><div><span>orange</span></div></div>
+                    <div class="g-edge        cubie orange LM DE CS"><div><span>g-edge</span></div></div>
+                    <!-- RIGHT COLUMN (R)  -->    
+                    <div class="f-corner cubie orange LM UE FS"><div><span>f-corner</span></div></div>
+                    <div class="f-edge   cubie orange LM CE FS"><div><span>f-edge</span></div></div>
+                    <div class="g-corner cubie orange LM DE FS"><div><span>g-corner</span></div></div>
+                <!-- END ORANGE (LEFT) FACE -->   
+
+                <!-- GREEN (FRONT) FACE -->
+                    <!-- LEFT COLUMN (L)  -->                
+                    <div class="ftl cubie green LM UE FS"><div><span>F1</span></div></div>
+                    <div class="fcl cubie green LM CE FS"><div><span>F2</span></div></div>
+                    <div class="fbl cubie green LM DE FS"><div><span>F3</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->            
+                    <div class="ftc cubie green CM UE FS"><div><span>F4</span></div></div>
+                    <div class="fcc cubie green CM CE FS"><div><span>F5</span></div></div>
+                    <div class="fbc cubie green CM DE FS"><div><span>F6</span></div></div>
+                    <!-- RIGHT COLUMN (R)  -->
+                    <div class="ftr cubie green RM UE FS"><div><span>F7</span></div></div>
+                    <div class="fcr cubie green RM CE FS"><div><span>F8</span></div></div>
+                    <div class="fbr cubie green RM DE FS"><div><span>F9</span></div></div>
+                <!-- END GREEN (FRONT) FACE -->
+                
+                <!-- RED (RIGHT) FACE -->
+                    <!-- LEFT COLUMN (L)  -->           
+                    <div class="rtl cubie red RM UE FS"><div><span>R1</span></div></div>
+                    <div class="rcl cubie red RM CE FS"><div><span>R2</span></div></div>
+                    <div class="rbl cubie red RM DE FS"><div><span>R3</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->  
+                    <div class="rtc cubie red RM UE CS"><div><span>R4</span></div></div>
+                    <div class="rcc cubie red RM CE CS"><div><span>R5</span></div></div>
+                    <div class="rbc cubie red RM DE CS"><div><span>R6</span></div></div>
+                    <!-- RIGHT COLUMN (R)  -->    
+                    <div class="rtr cubie red RM UE BS"><div><span>R7</span></div></div>
+                    <div class="rcr cubie red RM CE BS"><div><span>R8</span></div></div>
+                    <div class="rbr cubie red RM DE BS"><div><span>R9</span></div></div>
+                <!--END RED (RIGHT) FACE -->  
+
+                <!-- BLUE (BACK) FACE -->
+                    <!-- LEFT COLUMN (L)  -->           
+                    <div class="btl cubie blue LM DE BS"><div><span>B1</span></div></div>
+                    <div class="bcl cubie blue LM CE BS"><div><span>B2</span></div></div>
+                    <div class="bbl cubie blue LM UE BS"><div><span>B3</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->           
+                    <div class="btc cubie blue CM DE BS"><div><span>B4</span></div></div>
+                    <div class="bcc cubie blue CM CE BS"><div><span>B5</span></div></div>
+                    <div class="bbc cubie blue CM UE BS"><div><span>B6</span></div></div> 
+                    <!-- RIGHT COLUMN (R)  -->    
+                    <div class="btr cubie blue RM DE BS"><div><span>B7</span></div></div>
+                    <div class="bcr cubie blue RM CE BS"><div><span>B8</span></div></div>
+                    <div class="bbr cubie blue RM UE BS"><div><span>B9</span></div></div> 
+                <!-- END BLUE (BACK) FACE --> 
+
+                <!-- YELLOW (DOWN) FACE -->
+                    <!-- LEFT COLUMN (L)  -->                
+                    <div class="dtl cubie yellow LM DE FS"><div><span>D1</span></div></div>
+                    <div class="dcl cubie yellow LM DE CS"><div><span>D2</span></div></div>
+                    <div class="dbl cubie yellow LM DE BS"><div><span>D3</span></div></div>
+                    <!-- CENTER COLUMN (C)  -->                
+                    <div class="dtc cubie yellow CM DE FS"><div><span>D4</span></div></div>
+                    <div class="dcc cubie yellow CM DE CS"><div><span>D5</span></div></div>
+                    <div class="dbc cubie yellow CM DE BS"><div><span>D6</span></div></div>
+                    <!-- RIGHT COLUMN (R)  -->        
+                    <div class="dtr cubie yellow RM DE FS"><div><span>D7</span></div></div>
+                    <div class="dcr cubie yellow RM DE CS"><div><span>D8</span></div></div>
+                    <div class="dbr cubie yellow RM DE BS"><div><span>D9</span></div></div>
+                <!-- END YELLOW (DOWN) FACE -->
+                </div>
+            </div>
+        </div>  
+                    
+        <script type="module" src="dist/core/main.js"></script>
     </body>
-    
 </html>
