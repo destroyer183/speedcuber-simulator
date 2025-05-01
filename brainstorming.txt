@@ -2,5 +2,8 @@
 
 
 this website covers how a 3x3 rubiks cube was simulated with js
-https://html5rubik.com/tutorial/ - this one is better
+https://html5rubik.com/tutorial/
 https://medium.com/@nicholasrogers_98170/building-a-rubiks-cube-in-react-three-js-and-good-ole-javascript-96649d1172d9
+
+for f2l, there are 24 possible orders to solve the pairs, so do bfs on this.
+move a corner and edge into a position that matches an algorithm, compute permutation after solving, then continue

@@ -4,6 +4,7 @@
     <head>
         <title></title>
         <link rel="stylesheet" href="styles/style.css">
+        <link rel="stylesheet" href="styles/cube-style.css">
     </head>
 
     <body>
@@ -11,34 +12,70 @@
         <div id="cube-container">
             <div id="cube-viewport">
                 <div id="cube">
+
+            <!-- INTERNALS -->
+                <!-- TOP FACE UNDERLAYER -->
+                <!-- WHITE (UP) FACE -->
+                    <!-- LEFT COLUMN (L)  -->           
+                    <!-- <div class="A corner internal cubie black LM UE BS"><div><span></span></div></div>  -->
+                    <!-- <div class="D edge   internal cubie black LM UE CS"><div><span></span></div></div> -->
+                    <!-- <div class="D corner internal cubie black LM UE FS"><div><span></span></div></div> -->
+                    <!-- CENTER COLUMN (C)  -->            
+                    <!-- <div class="A edge       internal cubie black CM UE BS"><div><span></span></div></div> -->
+                    <!-- <div class="white center internal cubie black CM UE CS"><div><span></span></div></div> -->
+                    <!-- <div class="C edge       internal cubie black CM UE FS"><div><span></span></div></div> -->
+                    <!-- RIGHT COLUMN (R)  -->
+                    <!-- <div class="B corner internal cubie black RM UE BS"><div><span></span></div></div> -->
+                    <!-- <div class="B edge   internal cubie black RM UE CS"><div><span></span></div></div> -->
+                    <!-- <div class="C corner internal cubie black RM UE FS"><div><span></span></div></div> -->
+                <!-- END WHITE (UP) FACE -->   
+                
+                <!-- ORANGE (LEFT) FACE -->
+                    <!-- LEFT COLUMN (L)  -->           
+                    <!-- <div class="E corner internal cubie black LM UE BS"><div><span></span></div></div> -->
+                    <!-- <div class="H edge   internal cubie black LM CE BS"><div><span></span></div></div> -->
+                    <!-- <div class="H corner internal cubie black LM DE BS"><div><span></span></div></div> -->
+                    <!-- CENTER COLUMN (C)  -->  
+                    <!-- <div class="E edge internal        cubie black LM UE CS"><div><span></span></div></div> -->
+                    <!-- <div class="orange center internal cubie black LM CE CS"><div><span></span></div></div> -->
+                    <!-- <div class="G edge internal        cubie black LM DE CS"><div><span></span></div></div> -->
+                    <!-- RIGHT COLUMN (R)  -->    
+                    <!-- <div class="F corner internal cubie black LM UE FS"><div><span></span></div></div> -->
+                    <!-- <div class="F edge   internal cubie black LM CE FS"><div><span></span></div></div> -->
+                    <!-- <div class="G corner internal cubie black LM DE FS"><div><span></span></div></div> -->
+                <!-- END ORANGE (LEFT) FACE -->   
+    
+
+
+            <!-- EXTERNALS -->
                 <!-- WHITE (UP) FACE -->            
                     <!-- LEFT COLUMN (L)  -->
-                    <div class="a-corner cubie white LM UE BS"><div><span>a-corner</span></div></div> 
-                    <div class="d-edge   cubie white LM UE CS"><div><span>d-edge</span></div></div>
-                    <div class="d-corner cubie white LM UE FS"><div><span>d-corner</span></div></div>
+                    <div class="A corner NW cubie white LM UE BS"><div><span>A corner</span></div></div> 
+                    <div class="D edge   WW cubie white LM UE CS"><div><span>D edge</span></div></div>
+                    <div class="D corner SW cubie white LM UE FS"><div><span>D corner</span></div></div>
                     <!-- CENTER COLUMN (C)  -->            
-                    <div class="a-edge       cubie white CM UE BS"><div><span>a-edge</span></div></div>
-                    <div class="white-center cubie white CM UE CS"><div><span>white</span></div></div>
-                    <div class="c-edge       cubie white CM UE FS"><div><span>c-edge</span></div></div>
+                    <div class="A edge NN    cubie white CM UE BS"><div><span>A edge</span></div></div>
+                    <div class="white center cubie white CM UE CS"><div><span>white</span></div></div>
+                    <div class="C edge SS    cubie white CM UE FS"><div><span>C edge</span></div></div>
                     <!-- RIGHT COLUMN (R)  -->
-                    <div class="b-corner cubie white RM UE BS"><div><span>b-corner</span></div></div>
-                    <div class="b-edge   cubie white RM UE CS"><div><span>b-edge</span></div></div>
-                    <div class="c-corner cubie white RM UE FS"><div><span>c-corner</span></div></div>
+                    <div class="B corner NE cubie white RM UE BS"><div><span>B corner</span></div></div>
+                    <div class="B edge EE   cubie white RM UE CS"><div><span>B edge</span></div></div>
+                    <div class="C corner SE cubie white RM UE FS"><div><span>C corner</span></div></div>
                 <!-- END WHITE (UP) FACE -->  
 
                 <!-- ORANGE (LEFT) FACE -->
                     <!-- LEFT COLUMN (L)  -->           
-                    <div class="e-corner cubie orange LM UE BS"><div><span>e-corner</span></div></div>
-                    <div class="h-edge   cubie orange LM CE BS"><div><span>h-edge</span></div></div>
-                    <div class="h-corner cubie orange LM DE BS"><div><span>L3</span></div></div>
+                    <div class="E corner cubie orange LM UE BS"><div><span>E corner</span></div></div>
+                    <div class="H edge   cubie orange LM CE BS"><div><span>H edge</span></div></div>
+                    <div class="H corner cubie orange LM DE BS"><div><span>H corner</span></div></div>
                     <!-- CENTER COLUMN (C)  -->  
-                    <div class="e-edge        cubie orange LM UE CS"><div><span>e-edge</span></div></div>
-                    <div class="orange-center cubie orange LM CE CS"><div><span>orange</span></div></div>
-                    <div class="g-edge        cubie orange LM DE CS"><div><span>g-edge</span></div></div>
+                    <div class="E edge        cubie orange LM UE CS"><div><span>E edge</span></div></div>
+                    <div class="orange center cubie orange LM CE CS"><div><span>orange</span></div></div>
+                    <div class="G edge        cubie orange LM DE CS"><div><span>G edge</span></div></div>
                     <!-- RIGHT COLUMN (R)  -->    
-                    <div class="f-corner cubie orange LM UE FS"><div><span>f-corner</span></div></div>
-                    <div class="f-edge   cubie orange LM CE FS"><div><span>f-edge</span></div></div>
-                    <div class="g-corner cubie orange LM DE FS"><div><span>g-corner</span></div></div>
+                    <div class="F corner cubie orange LM UE FS"><div><span>F corner</span></div></div>
+                    <div class="F edge   cubie orange LM CE FS"><div><span>F edge</span></div></div>
+                    <div class="G corner cubie orange LM DE FS"><div><span>G corner</span></div></div>
                 <!-- END ORANGE (LEFT) FACE -->   
 
                 <!-- GREEN (FRONT) FACE -->
@@ -84,7 +121,7 @@
                     <div class="btr cubie blue RM DE BS"><div><span>B7</span></div></div>
                     <div class="bcr cubie blue RM CE BS"><div><span>B8</span></div></div>
                     <div class="bbr cubie blue RM UE BS"><div><span>B9</span></div></div> 
-                <!-- END BLUE (BACK) FACE --> 
+                <!-- END BLUE (BACK) FACE -->
 
                 <!-- YELLOW (DOWN) FACE -->
                     <!-- LEFT COLUMN (L)  -->                
@@ -104,6 +141,6 @@
             </div>
         </div>  
                     
-        <script type="module" src="dist/core/main.js"></script>
+        <script type="module" src="dist/core/test.js"></script>
     </body>
 </html>
