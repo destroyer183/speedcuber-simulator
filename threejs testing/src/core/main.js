@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { roundEdgedBox } from "./roundEdgeBox.js";
 
 
@@ -34,7 +35,7 @@ function main() {
         new THREE.MeshBasicMaterial({ color: 0x000000 }),
     ];
 
-    const roundCube = roundEdgedBox(5, 5, 5, colors);
+    const roundCube = roundEdgedBox(5, colors);
 
     // const roundCube = new THREE.Mesh(roundCubeGeometry, basicMaterial);
 
@@ -44,7 +45,7 @@ function main() {
 
     document.querySelector('#canvas-wrapper').addEventListener("mousemove", function(e) {
 
-        let x = (e.pageX * 0.01 + window.screen.height / 2) ;
+        let x = (e.pageX * 0.01 + window.screen.height / 2);
         let y = (e.pageY * 0.01 + window.screen.width / 2);
         roundCube.rotation.set(y, x, 0)
 
