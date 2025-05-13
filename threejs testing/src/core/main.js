@@ -35,7 +35,7 @@ function main() {
         new THREE.MeshBasicMaterial({ color: 0x000000 }),
     ];
 
-    const roundCube = roundEdgedBox(5, colors);
+    const roundCube = roundEdgedBox(5, colors); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
 
     // const roundCube = new THREE.Mesh(roundCubeGeometry, basicMaterial);
 

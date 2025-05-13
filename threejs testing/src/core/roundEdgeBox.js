@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const smoothness = 9;
 const cylinderSegments = 1;
@@ -213,9 +214,33 @@ export function roundEdgedBox(size, colors) {
     // radius = (size*2)*(sinx - sin(alpha - newArcBottom))
     // radius/(size*2) = sinx - sin(alpha - newArcBottom)
     // sinx = radius/(size*2) + sin(alpha - newArcBottom)
-    let segSize = Math.asin(radius/(size*2) + Math.sin(alpha - newArcBottom)) - (alpha - newArcBottom);
 
-    verticalArc = segSize * (4.3);
+
+
+    // x = y
+    // dx * sin(pi/2 - horizontalRot) = radius - dy
+    // ((size*2)*cos(alpha - newArcBottom) - (size*2)*cos(x)) * sin(horizontalRot) = radius - ((size*2)*sin(x) - (size*2)*sin(alpha - newArcBottom))
+    // (size*2) * (cos(alpha - newArcBottom) - cos(x)) * sin(horizontalRot) = radius - (size*2) * (sin(x) - sin(alpha - newArcBottom))
+
+    // a = (size*2)
+    // b = alpha - newArcBottom
+    // c = horizontalRot
+    // d = radius
+
+    // x = asin( ((d/a) + sin(b) - sin(c)cos(b)) / (sqrt(1 + sin^2(c))) ) + atan(sin(c))
+
+    let a = (size*2);
+    let b = alpha - newArcBottom;
+    let c = horizontalRot;
+    let d = radius;
+
+    let segSize = Math.asin( ((d/a) + Math.sin(b) - Math.sin(c)*Math.cos(b)) / Math.sqrt(1 + Math.sin(c)**2)) + Math.atan(Math.sin(c));
+
+    segSize -= (alpha - newArcBottom);
+
+    // let segSize = Math.asin(radius/(size*2) + Math.sin(alpha - newArcBottom)) - (alpha - newArcBottom);
+
+    verticalArc = segSize * (5);
 
     let verticalRot = Math.PI/2 - alpha - newArcTop;
     verticalRot = Math.PI/2 - (alpha - newArcBottom) - verticalArc;
@@ -269,48 +294,13 @@ export function roundEdgedBox(size, colors) {
 
 
     
-    let backSphere1 = new THREE.SphereGeometry(size * 2, smoothness * 2, 5, Math.PI * 1/2 + horizontalRot, horizontalArc, verticalRot, verticalArc);
+    let backSphereTemplate = new THREE.SphereGeometry(size * 2, smoothness * 2, 5, Math.PI * 1/2 + horizontalRot, horizontalArc, verticalRot, verticalArc);
 
-    backSphere1.translate(
+    backSphereTemplate.translate(
         halfSize - (((size*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot)),
         -halfSize - ((size*2) * Math.sin(alpha - newArcBottom)) - radius,
         halfSize - (((size*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot)),
     );
-
-    let backSphere2 = backSphere1.clone();
-    let backSphere3 = backSphere1.clone();
-
-    backSphere2.rotateY(-Math.PI/2);
-    backSphere2.rotateZ(-Math.PI/2);
-
-    
-    // backSphere2.translate(-halfSize - radius * 0, -halfSize - radius * 1, -halfSize - radius * 0);
-    // backSphere3.translate(-halfSize - radius * 1, -halfSize - radius * 0, -halfSize - radius * 1);
-
-    let tempPoints = backSphere1.getAttribute("position");
-
-    let pointObtained = false;
-
-    let pointX;
-    let pointY;
-    let pointZ;
-
-    for (let i = 0; i < tempPoints.count; i++) {
-
-        let x = tempPoints.getX(i);
-        let y = tempPoints.getY(i);
-        let z = tempPoints.getZ(i);
-
-        if (-2.2 > y && y > -2.4 && !pointObtained) {
-            console.log(x + ", " + y + ", " + z);
-            pointX = x;
-            pointY = y;
-            pointZ = z;
-            pointObtained = true;
-        }
-    }
-
-
 
     let corner = new THREE.CircleGeometry(radius, smoothness * 2, Math.PI, Math.PI/2);
     corner.translate(-halfSize, -halfSize, halfSize);
@@ -319,28 +309,17 @@ export function roundEdgedBox(size, colors) {
 
     let cornerPoints = corner.getAttribute("position");
 
-    // let zOffset = (size*2)*Math.cos(alpha-newArcBottom) - (size*2)*Math.cos(segSize + (alpha-newArcBottom));
 
+    let pointX = -2.5 + radius - (size*2)*(Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.sin(horizontalRot);
+    let pointY = pointX;
+    let pointZ = 2.3 - (size*2)*(Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.cos(horizontalRot);
 
-    // determine angle that gives proper y offest
-    // use angle to determine z offset
-
-    // let height = pointX + 2.5;
-
-    // height = (size*2)*sinx - (size*2)*sin(alpha - newArcBottom)
-    // height = (size*2)*(sinx - sin(alpha - newArcBottom))
-    // height/(size*2) + sin(alpha - newArcBottom) = sinx
-
-    // let angle = Math.asin(height/(size*2) + Math.sin(alpha - newArcBottom));
-    // let zDiff = (size*2)*Math.cos(alpha - newArcBottom) - (size*2)*Math.cos(angle);
-    
     let cornerVertices = [
         pointX, pointY, pointZ,
         size / -2, (size - radius * 2) / -2, (size - radius * 2) / 2
     ];
 
     let cornerIndices = [];
-
 
     for (let i = 2; i < cornerPoints.count; i++) {
 
@@ -361,15 +340,56 @@ export function roundEdgedBox(size, colors) {
 
 
 
+    let sphereVertices = backSphereTemplate.getAttribute("position").array;
+    let sphereIndices = backSphereTemplate.getIndex().array;
+
+    let backSphere1 = new THREE.BufferGeometry();
+
+    let backSphere1Position = new THREE.Float32BufferAttribute(new Float32Array([...sphereVertices, ...cornerVertices]), 3);
+    backSphere1.setAttribute("position", backSphere1Position);
+
+    for (let i = 0; i < cornerIndices.length; i++) cornerIndices[i] += backSphereTemplate.getAttribute("position").count;
+
+    let backSphere1Index = new THREE.Float32BufferAttribute(new Float32Array([...sphereIndices, ...cornerIndices]), 3);
+    backSphere1.setIndex(backSphere1Index);
+
+    let backSphere2 = backSphere1.clone();
+    let backSphere3 = backSphere1.clone();
+
+    backSphere2.rotateY(-Math.PI/2);
+    backSphere2.rotateZ(-Math.PI/2);
+    
+    backSphere3.rotateY(Math.PI/2);
+    backSphere3.rotateX(Math.PI/2);
+
+
+    let backSphere = new THREE.BufferGeometry();
+
+    let backSphere1Vertices = backSphere1.getAttribute("position").array;
+    let backSphere2Vertices = backSphere2.getAttribute("position").array;
+    let backSphere3Vertices = backSphere3.getAttribute("position").array;
+
+    let backSphere1Indices = backSphere1.getIndex().array; 
+    let backSphere2Indices = backSphere2.getIndex().array; 
+    let backSphere3Indices = backSphere3.getIndex().array; 
+
+    let backSpherePosition = new THREE.Float32BufferAttribute(new Float32Array([...backSphere1Vertices, ...backSphere2Vertices, ...backSphere3Vertices]), 3);
+    backSphere.setAttribute("position", backSpherePosition);
+
+    for (let i = 0; i < backSphere2Indices.length; i++) backSphere2Indices[i] += backSphere1.getAttribute("position").count;
+    for (let i = 0; i < backSphere3Indices.length; i++) backSphere3Indices[i] += backSphere1.getAttribute("position").count + backSphere2.getAttribute("position").count;
+
+    let backSphereIndex = new THREE.Float32BufferAttribute(new Float32Array([...backSphere1Indices, ...backSphere2Indices, ...backSphere3Indices]), 3);
+    backSphere.setIndex(backSphereIndex);
+
+
+
+
     group.add(new THREE.Mesh(side4, wireFrameGray));
     group.add(new THREE.Mesh(side5, wireFrameGray));
     group.add(new THREE.Mesh(side6, wireFrameGray));
-    group.add(new THREE.Mesh(backSphere1, wireFrameGray));
-    group.add(new THREE.Mesh(cornerPiece1, wireFrameGray));
-    
-    group.add(new THREE.Mesh(backSphere2, wireFrameGray));
-    // group.add(new THREE.Mesh(backSphere3, colorGray));
 
+    group.add(new THREE.Mesh(backSphere, wireFrameGray));
 
     
     return group;
