@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const smoothness = 9;
 const cylinderSegments = 1;
@@ -23,9 +22,9 @@ export function roundEdgedBox(size, colors) {
     const wireFrameWhite = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
     const wireFrameGray  = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, wireframe: true });
     const colorGray  = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, side: THREE.DoubleSide });
-    const colorWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const colorRed   = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const colorGreen = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const colorWhite = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    const colorRed   = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+    const colorGreen = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
 
     // corners - 8 eighths of a sphere
 
@@ -39,21 +38,85 @@ export function roundEdgedBox(size, colors) {
 
 
 
-    let corner21 = new THREE.SphereGeometry(radius, smoothness, smoothness, -Math.PI * 1/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
-    corner21.rotateX(Math.PI * 11/36);
-    corner21.rotateY(Math.PI * 9/36);
+    // radius * Math.sin(Math.PI/4) = Math.sin(x) * radius + Math.cos(x) * radius * Math.cos(Math.PI/4)
+    // radius * sin(pi/4) = radius * (sin(x) + cos(x)cos(pi/4))
+    // sin(pi/4) = sin(x) + cos(x)cos(pi/4)
+    // sin(pi/4) - sin(x) = cos(x)cos(pi/4)
+    // tan(pi/4) - sin(x)/cos(pi/4) = cos(x)
+    // 1 - sin(x)/cos(pi/4) = cos(x)
+    // 1 - sin(x)#2 = cos(x)
+    // 1 = sin(x)#2 + cos(x)
+    // sin^2(x) + cos^2(x) = sin(x)#2 + cos(x)
+
+
+    // sin^2(x) - sin(x)#2 = cos(x) - cos^2(x)
+    // sin(x)(sin(x) - #2) = sin(x)(cot(x) - cot(x)cos(x))
+    // sin(x) - #2 = cot(x) - cot(x)cos(x)
+    // sin(x) - #2 = cot(x)(1 - cos(x))
+    // sin^2(x)/cos(x) - #2tan(x) = 1 - cos(x)
+    // (1 - cos^2(x))/cos(x) - #2tan(x) = 1 - cos(x)
+    // 1/cos(x) - cos(x) - #2tan(x) = 1 - cos(x)
+    // sec(x) - #2tan(x) = 1
+    // 1 - #2sin(x) = cos(x)
+
+
+    // sin^2(x) - sin(x)#2 = cos(x) - cos^2(x)
+    // sin(x)(sin(x) - #2) = cos(x)(1 - cos(x))
+    // tan(x)(sin(x) - #2) = 1 - cos(x)
+    // 1 - tan(x)(sin(x) - #2) = cos(x)
+    // 1 - tan(x)(sin(x) - #2) = 1 - #2sin(x)
+    // tan(x)(sin(x) - #2) = #2sin(x)
+    // sin(x) - #2 = #2cos(x)
+    // sin(x)/#2 - 1 = cos(x)
+    // sin(x)/#2 - 1 = 1 - #2sin(x)
+    // sin(x)/#2 + #2sin(x) = 2
+    // sin(x)/#2 + 2sin(x)/#2 = 2
+    // 3sin(x)/#2 = 2
+    // 3sin(x) = 2#2
+    // sin(x) = (2#2)/3
+
+    let x = Math.asin(2 * Math.sqrt(2) / 3);
+
+
+
+
+
+
+
+
+
+    let xDist = radius * Math.sin(Math.PI/4);
+
+
+
+    // let corner21 = new THREE.SphereGeometry(radius, smoothness, smoothness, -Math.PI * 1/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
+    // corner21.rotateX(Math.PI * 11/36);
+    // corner21.rotateY(Math.PI * 9/36);
+    let corner21 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 1/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
+    corner21.rotateX(Math.PI/3);
+    corner21.rotateY(Math.PI/4);
+    // corner21.rotateZ(-Math.PI/4);
     corner21.translate(halfSize, halfSize, halfSize);
 
-    let corner22 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 1/2, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
-    corner22.rotateX(Math.PI * 11/36);
-    corner22.rotateY(Math.PI * 9/36);
+    // let corner22 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 1/2, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
+    let corner22 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 5/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
+    // corner22.rotateX(Math.PI * 11/36);
+    // corner22.rotateY(Math.PI * 9/36);
+    corner22.rotateX(Math.PI * 7/36);
+    corner22.rotateZ(-Math.PI/4);
     corner22.translate(halfSize, halfSize, halfSize);
 
-    let corner23 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 7/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
-    corner23.rotateX(Math.PI * 11/36);
-    corner23.rotateY(Math.PI * 9/36);
+    let corner23 = new THREE.SphereGeometry(radius, smoothness, smoothness, Math.PI * 9/6, Math.PI * 2/3, Math.PI * 0, Math.PI * 1/3);
+    // corner23.rotateX(Math.PI * 11/36);
+    // corner23.rotateY(Math.PI * 9/36);
+    corner23.rotateX(Math.PI * 7/36);
+    corner23.rotateZ(-Math.PI/4);
     corner23.translate(halfSize, halfSize, halfSize);
 
+
+    console.log(corner21.getAttribute("position").array[0] + ", " + corner21.getAttribute("position").array[1] + ", " + corner21.getAttribute("position").array[2]);
+    console.log(corner22.getAttribute("position").array[0] + ", " + corner22.getAttribute("position").array[1] + ", " + corner22.getAttribute("position").array[2]);
+    console.log(corner23.getAttribute("position").array[0] + ", " + corner23.getAttribute("position").array[1] + ", " + corner23.getAttribute("position").array[2]);
 
 
     let corner31 = new THREE.SphereGeometry(radius, smoothness, smoothness * 2, -Math.PI * 3/4, Math.PI * 1/4, Math.PI * 0, Math.PI * 1/2);
@@ -93,23 +156,26 @@ export function roundEdgedBox(size, colors) {
 
 
 
-    group.add(new THREE.Mesh(corner11, wireFrameWhite));
-    group.add(new THREE.Mesh(corner12, wireFrameGreen));
+
+
+
+    // group.add(new THREE.Mesh(corner11, wireFrameWhite));
+    // group.add(new THREE.Mesh(corner12, wireFrameGreen));
 
     group.add(new THREE.Mesh(corner21, wireFrameGreen)); 
     group.add(new THREE.Mesh(corner22, wireFrameRed));
     group.add(new THREE.Mesh(corner23, wireFrameWhite)); 
 
-    group.add(new THREE.Mesh(corner31, wireFrameGreen));
-    group.add(new THREE.Mesh(corner32, wireFrameRed));
+    // group.add(new THREE.Mesh(corner31, wireFrameGreen));
+    // group.add(new THREE.Mesh(corner32, wireFrameRed));
 
-    group.add(new THREE.Mesh(corner4, wireFrameGreen));
-    group.add(new THREE.Mesh(corner5, wireFrameWhite));
+    // group.add(new THREE.Mesh(corner4, wireFrameGreen));
+    // group.add(new THREE.Mesh(corner5, wireFrameWhite));
     
-    group.add(new THREE.Mesh(corner61, wireFrameWhite));
-    group.add(new THREE.Mesh(corner62, wireFrameRed));
+    // group.add(new THREE.Mesh(corner61, wireFrameWhite));
+    // group.add(new THREE.Mesh(corner62, wireFrameRed));
 
-    group.add(new THREE.Mesh(corner7, wireFrameRed));
+    // group.add(new THREE.Mesh(corner7, wireFrameRed));
     // edges
 
 
@@ -194,9 +260,92 @@ export function roundEdgedBox(size, colors) {
     side3.rotateY(Math.PI * 1/2);
     side3.translate(size * 1/2, 0, 0);
 
-    group.add(new THREE.Mesh(side1, wireFrameWhite));
-    group.add(new THREE.Mesh(side2, wireFrameGreen));
-    group.add(new THREE.Mesh(side3, wireFrameRed));
+    // group.add(new THREE.Mesh(side1, wireFrameWhite));
+    // group.add(new THREE.Mesh(side2, wireFrameGreen));
+    // group.add(new THREE.Mesh(side3, wireFrameRed));
+
+
+
+    let topFace = new THREE.BufferGeometry();
+
+    // tfc = topFaceCorner
+    let tfc1Vertices = [...corner11.getAttribute("position").array];
+    let tfc2Vertices = [...corner23.getAttribute("position").array];
+    let tfc3Vertices = [...corner5.getAttribute("position").array];
+    let tfc4Vertices = [...corner61.getAttribute("position").array];
+    let tfcVertices = [...tfc1Vertices, ...tfc2Vertices, ...tfc3Vertices, ...tfc4Vertices];
+
+    // tfe = topFaceEdge
+    let tfe1Vertices = [...edge11.getAttribute("position").array];
+    let tfe2Vertices = [...edge12.getAttribute("position").array];
+    let tfe3Vertices = [...edge13.getAttribute("position").array];
+    let tfe4Vertices = [...edge14.getAttribute("position").array];
+    let tfeVertices = [...tfe1Vertices, ...tfe2Vertices, ...tfe3Vertices, ...tfe4Vertices];
+
+    let topFaceSideVertices = [...side1.getAttribute("position").array];
+
+    let tfc1Indices = [...corner11.getIndex().array];
+    let tfc2Indices = [...corner23.getIndex().array];
+    let tfc3Indices = [...corner5.getIndex().array];
+    let tfc4Indices = [...corner61.getIndex().array];
+
+    for (let i = 0; i < tfc2Indices.length; i++) tfc2Indices[i] += tfc1Vertices.length / 3;
+    for (let i = 0; i < tfc3Indices.length; i++) tfc3Indices[i] += tfc1Vertices.length / 3 + tfc2Vertices.length / 3;
+    for (let i = 0; i < tfc4Indices.length; i++) tfc4Indices[i] += tfc1Vertices.length / 3 + tfc2Vertices.length / 3 + tfc3Vertices.length / 3;
+
+    let tfcIndices = [...tfc1Indices, ...tfc2Indices, ...tfc3Indices, ...tfc4Indices];
+
+    let tfe1Indices = [...edge11.getIndex().array];
+    let tfe2Indices = [...edge12.getIndex().array];
+    let tfe3Indices = [...edge13.getIndex().array];
+    let tfe4Indices = [...edge14.getIndex().array];
+
+    for (let i = 0; i < tfe2Indices.length; i++) tfe2Indices[i] += tfe1Vertices.length / 3;
+    for (let i = 0; i < tfe3Indices.length; i++) tfe3Indices[i] += tfe1Vertices.length / 3 + tfe2Vertices.length / 3;
+    for (let i = 0; i < tfe4Indices.length; i++) tfe4Indices[i] += tfe1Vertices.length / 3 + tfe2Vertices.length / 3 + tfe3Vertices.length / 3;
+    
+    let tfeIndices = [...tfe1Indices, ...tfe2Indices, ...tfe3Indices, ...tfe4Indices];
+
+    let topFaceSideIndices = [...side1.getIndex().array];
+
+    let topFacePosition = new THREE.Float32BufferAttribute(new Float32Array([...tfcVertices, ...tfeVertices, ...topFaceSideVertices]), 3);
+    topFace.setAttribute("position", topFacePosition);
+
+    
+
+    // combine the indices attributes here
+    for (let i = 0; i < tfeIndices.length; i++) tfeIndices[i] += tfcVertices.length / 3;
+    for (let i = 0; i < topFaceSideIndices.length; i++) topFaceSideIndices[i] += tfcVertices.length / 3 + tfeVertices.length / 3 * 0;
+
+    let topFaceIndex = new THREE.Uint16BufferAttribute(new Uint16Array([...tfcIndices, ...topFaceSideIndices]), 1);
+    topFace.setIndex(topFaceIndex);
+
+
+
+    let frontFace = topFace.clone();
+    let rightFace = topFace.clone();
+
+    frontFace.rotateY(Math.PI/2);
+    frontFace.rotateX(Math.PI/2);
+
+
+    // let frontFacePosition = new THREE.Float32BufferAttribute(new Float32Array([...frontFace.getAttribute("position").array, ...side2.getAttribute("position").array]), 3);
+    // frontFace.setAttribute("position", frontFacePosition);
+
+    // let frontFaceIndex = new THREE.Uint16BufferAttribute(new Uint16Array([...frontFace.getIndex().array, ...topFaceSideIndices]), 1);
+    // frontFace.setIndex(frontFaceIndex);
+
+    rightFace.rotateY(-Math.PI/2);
+    rightFace.rotateZ(-Math.PI/2);
+
+
+
+
+
+    // group.add(new THREE.Mesh(topFace, wireFrameWhite));
+    // group.add(new THREE.Mesh(frontFace, wireFrameGreen));
+    // group.add(new THREE.Mesh(rightFace, wireFrameRed));
+
 
 
 
@@ -277,7 +426,7 @@ export function roundEdgedBox(size, colors) {
 
 
     let positionAttribute = new THREE.Float32BufferAttribute(new Float32Array(vertices), 3);
-    let indexAttribute = new THREE.Float32BufferAttribute(new Float32Array(indices), 3);
+    let indexAttribute = new THREE.Uint16BufferAttribute(new Uint16Array(indices), 1);
     side4.setAttribute("position", positionAttribute);
     side4.setIndex(indexAttribute);
 
@@ -314,12 +463,12 @@ export function roundEdgedBox(size, colors) {
     let pointY = pointX;
     let pointZ = 2.3 - (size*2)*(Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.cos(horizontalRot);
 
-    let cornerVertices = [
+    let backCornerVertices = [
         pointX, pointY, pointZ,
         size / -2, (size - radius * 2) / -2, (size - radius * 2) / 2
     ];
 
-    let cornerIndices = [];
+    let backCornerIndices = [];
 
     for (let i = 2; i < cornerPoints.count; i++) {
 
@@ -329,12 +478,12 @@ export function roundEdgedBox(size, colors) {
 
         // console.log(x + ", " + y + ", " + z);
 
-        cornerVertices.push(x, y, z);
-        cornerIndices.push(0, i, i - 1);
+        backCornerVertices.push(x, y, z);
+        backCornerIndices.push(0, i, i - 1);
     }
 
-    let cornerPositionAttribute = new THREE.Float32BufferAttribute(new Float32Array(cornerVertices), 3);
-    let cornerIndexAttribute = new THREE.Float32BufferAttribute(new Float32Array(cornerIndices), 3);
+    let cornerPositionAttribute = new THREE.Float32BufferAttribute(new Float32Array(backCornerVertices), 3);
+    let cornerIndexAttribute = new THREE.Uint16BufferAttribute(new Uint16Array(backCornerIndices), 3);
     cornerPiece1.setAttribute("position", cornerPositionAttribute);
     cornerPiece1.setIndex(cornerIndexAttribute);
 
@@ -345,12 +494,12 @@ export function roundEdgedBox(size, colors) {
 
     let backSphere1 = new THREE.BufferGeometry();
 
-    let backSphere1Position = new THREE.Float32BufferAttribute(new Float32Array([...sphereVertices, ...cornerVertices]), 3);
+    let backSphere1Position = new THREE.Float32BufferAttribute(new Float32Array([...sphereVertices, ...backCornerVertices]), 3);
     backSphere1.setAttribute("position", backSphere1Position);
 
-    for (let i = 0; i < cornerIndices.length; i++) cornerIndices[i] += backSphereTemplate.getAttribute("position").count;
+    for (let i = 0; i < backCornerIndices.length; i++) backCornerIndices[i] += backSphereTemplate.getAttribute("position").count;
 
-    let backSphere1Index = new THREE.Float32BufferAttribute(new Float32Array([...sphereIndices, ...cornerIndices]), 3);
+    let backSphere1Index = new THREE.Uint16BufferAttribute(new Uint16Array([...sphereIndices, ...backCornerIndices]), 3);
     backSphere1.setIndex(backSphere1Index);
 
     let backSphere2 = backSphere1.clone();
@@ -379,7 +528,7 @@ export function roundEdgedBox(size, colors) {
     for (let i = 0; i < backSphere2Indices.length; i++) backSphere2Indices[i] += backSphere1.getAttribute("position").count;
     for (let i = 0; i < backSphere3Indices.length; i++) backSphere3Indices[i] += backSphere1.getAttribute("position").count + backSphere2.getAttribute("position").count;
 
-    let backSphereIndex = new THREE.Float32BufferAttribute(new Float32Array([...backSphere1Indices, ...backSphere2Indices, ...backSphere3Indices]), 3);
+    let backSphereIndex = new THREE.Uint16BufferAttribute(new Uint16Array([...backSphere1Indices, ...backSphere2Indices, ...backSphere3Indices]), 3);
     backSphere.setIndex(backSphereIndex);
 
 
