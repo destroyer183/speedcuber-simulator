@@ -37,7 +37,7 @@ function main() {
     const cornerPiece = constructCorner(5, colorWhite, colorGreen, colorRed, colorGray); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
     
 
-    const edgePiece = constructEdge(5, colorWhite, colorGreen, colorGray);
+    const edgePiece = constructEdge(5, colorWhite, colorGreen, colorGray, true);
 
 
     // const roundCube = new THREE.Mesh(roundCubeGeometry, basicMaterial);
