@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { constructCorner, constructEdge } from "./pieceConstructor.js";
+import { constructCorner, constructEdge, constructCenter } from "./pieceConstructor.js";
 
 
 function main() {
@@ -18,7 +18,7 @@ function main() {
 
 
     const camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
-    camera.position.z = 5;
+    camera.position.z = 20;
     scene.add(camera);
 
 
@@ -34,25 +34,39 @@ function main() {
     const colorYellow = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
     const colorGray   = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, side: THREE.DoubleSide });
 
-    const cornerPiece = constructCorner(5, colorWhite, colorGreen, colorRed, colorGray); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
+    const pieceSize = 5;
+    const pieceGap = 0.1;
+    const pieceOffset = pieceSize + pieceGap;
+
+    const cornerPiece = constructCorner(pieceSize, colorWhite, colorGreen, colorRed, colorGray, false); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
+    cornerPiece.translateX(pieceOffset);
+    cornerPiece.translateY(pieceOffset);
+    cornerPiece.translateZ(pieceOffset);
     
+    const edgePiece = constructEdge(pieceSize, colorWhite, colorGreen, colorGray, false);
+    edgePiece.translateY(pieceOffset);
+    edgePiece.translateZ(pieceOffset);
 
-    const edgePiece = constructEdge(5, colorWhite, colorGreen, colorGray, true);
+    const centerPiece = constructCenter(pieceSize, colorWhite, colorGray, false);
+    centerPiece.translateY(pieceOffset);
 
+    let mainGroup = new THREE.Group()
 
-    // const roundCube = new THREE.Mesh(roundCubeGeometry, basicMaterial);
-
-    // roundCube.rotation.set(0.4, 0.2, 0);
+    mainGroup.add(cornerPiece, edgePiece, centerPiece);
 
     // scene.add(cornerPiece);
-    scene.add(edgePiece);
+    // scene.add(edgePiece);
+    // scene.add(centerPiece);
+    scene.add(mainGroup);
 
     document.querySelector('#canvas-wrapper').addEventListener("mousemove", function(e) {
 
         let x = (e.pageX * 0.01 + window.screen.height / 2);
         let y = (e.pageY * 0.01 + window.screen.width / 2);
-        cornerPiece.rotation.set(y, x, 0)
-        edgePiece.rotation.set(y, x, 0)
+        // cornerPiece.rotation.set(y, x, 0);
+        // edgePiece.rotation.set(y, x, 0);
+        // centerPiece.rotation.set(y, x, 0);
+        mainGroup.rotation.set(y, x, 0);
 
     }, false);
 
