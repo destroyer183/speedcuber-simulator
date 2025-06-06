@@ -2,6 +2,10 @@ import * as THREE from 'three';
 import { constructCorner, constructEdge, constructCenter } from "./pieceConstructor.js";
 
 
+
+
+
+
 function main() {
 
     const WIDTH = window.innerWidth;
@@ -20,11 +24,6 @@ function main() {
     const camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
     camera.position.z = 20;
     scene.add(camera);
-
-
-
-
-
 
     const colorWhite  = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     const colorOrange = new THREE.MeshBasicMaterial({ color: 0xff5f1f, side: THREE.DoubleSide });
@@ -58,6 +57,8 @@ function main() {
     // scene.add(edgePiece);
     // scene.add(centerPiece);
     scene.add(mainGroup);
+
+    // for generating the full cube, associate a directional offset with each colour.
 
     document.querySelector('#canvas-wrapper').addEventListener("mousemove", function(e) {
 

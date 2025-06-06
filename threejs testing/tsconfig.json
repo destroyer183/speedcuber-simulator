@@ -6,7 +6,11 @@
         "sourceMap": true,
         "strict": true,
         "strictPropertyInitialization": false,
-        "module": "ES6"
+        "module": "esnext",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "allowJs": true,
+        "checkJs": false,
     },
     "include": [
         "src/**/*"
