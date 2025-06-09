@@ -1,13 +1,32 @@
 import * as THREE from "three";
-import { EdgeTile, CornerTile, CenterTile } from "./dataTypes";
+import { EdgeTile, CornerTile, CenterTile, TileColor, CubeTile } from "./cubeData";
+import { ColorType, white, orange, green, red, blue, yellow, gray } from "./cubeData";
+import { pieceSize, pieceOffset } from "./cubeData";
 import { constructCorner, constructEdge, constructCenter } from "./pieceConstructor.js";
 
 
 
 export class Cube {
     
-    protected position: Record<EdgeTile | CornerTile | CenterTile, THREE.Group>;
+    protected position: Record<EdgeTile | CornerTile | CenterTile, CubeTile>;
+    protected cubeGroup: THREE.Group = new THREE.Group();
+
+
+
+    public generateCube() {
+
+        
+        const AER: THREE.Group = constructCorner(white, blue, orange);
+        const BNQ: THREE.Group = constructCorner(white, red, blue);
+        const CJM: THREE.Group = constructCorner(white, green, red);
+
+
+        const BQ: THREE.Group = constructEdge(white, blue);
+
+
+    }
 }
+
 
 
 function main() {
@@ -29,30 +48,19 @@ function main() {
     camera.position.z = 20;
     scene.add(camera);
 
-    const colorWhite  = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-    const colorOrange = new THREE.MeshBasicMaterial({ color: 0xff5f1f, side: THREE.DoubleSide });
-    const colorGreen  = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
-    const colorRed    = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
-    const colorBlue   = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
-    const colorYellow = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
-    const colorGray   = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, side: THREE.DoubleSide });
-
     const pieceSize = 5;
     const pieceGap = 0.1;
     const pieceOffset = pieceSize + pieceGap;
 
 
-    const cornerPiece = constructCorner(pieceSize, colorWhite, colorGreen, colorRed, colorGray, false); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
-    cornerPiece.translateX(pieceOffset);
-    cornerPiece.translateY(pieceOffset);
-    cornerPiece.translateZ(pieceOffset);
-    
-    const edgePiece = constructEdge(pieceSize, colorWhite, colorGreen, colorGray, false);
-    edgePiece.translateY(pieceOffset);
-    edgePiece.translateZ(pieceOffset);
 
-    const centerPiece = constructCenter(pieceSize, colorWhite, colorGray, false);
-    centerPiece.translateY(pieceOffset);
+    const cornerPiece = constructCorner(white, orange, green); // COMMENT EVERYTHING IN THIS FUNCTION ONCE IT IS COMPLETE
+
+    
+    const edgePiece = constructEdge(white, green);
+
+
+    const centerPiece = constructCenter(green);
 
     let mainGroup = new THREE.Group()
 
@@ -74,7 +82,7 @@ function main() {
         // centerPiece.rotation.set(y, x, 0);
         mainGroup.rotation.set(y, x, 0);
 
-    }, false);
+    }, false); 
 
     function render() {
         requestAnimationFrame(render);

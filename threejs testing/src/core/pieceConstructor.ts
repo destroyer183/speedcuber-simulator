@@ -1,22 +1,12 @@
-
 import * as THREE from 'three';
+import { ColorType, pieceSize, gray } from './cubeData';
 
 
 const smoothness = 9; // define constant for number of segments for shapes
 const edgeRadius = 0.2; // define constant for radius of curved edges 
 const cylinderSegments = 1;
 
-// define constants for wire frame colors
-const wireFrameGreen = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-const wireFrameRed   = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
-const wireFrameWhite = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-const wireFrameGray  = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, wireframe: true });
 
-// define constants for solid colors
-const colorWhite = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-const colorGreen = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
-const colorRed   = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
-const colorGray  = new THREE.MeshBasicMaterial({ color: 0xd3d3d3, side: THREE.DoubleSide });
 
 
 // create new function for buffer geometries that merges multiple buffer geometries
@@ -68,19 +58,17 @@ class ExBufferGeometry extends THREE.BufferGeometry {
 // define function to create a corner piece for a rubiks cube
 // take in arguments for size, face colors, inner color, and whether or not to draw as a wire frame or not
 export function constructCorner(
-    size: number, 
-    upColor: THREE.MeshBasicMaterial, 
-    frontColor: THREE.MeshBasicMaterial, 
-    rightColor: THREE.MeshBasicMaterial, 
-    innerColor: THREE.MeshBasicMaterial, 
-    isWireFrame = false
+    upColor: ColorType, 
+    frontColor: ColorType, 
+    rightColor: ColorType, 
+    innerColor: ColorType = gray
 ) {
 
     // define constant for radius of edges on the back piece of the corner
-    const backEdgeRadius = size/4;
+    const backEdgeRadius = pieceSize/4;
 
     // define constant for half the size of the cube minus the edge size
-    const halfSize = size * 0.5 - edgeRadius;
+    const halfSize = pieceSize * 0.5 - edgeRadius;
 
     // create new group to store all parts of the corner piece in a single variable
     let group = new THREE.Group();
@@ -119,19 +107,19 @@ export function constructCorner(
 
     // edges
     // create new cylinder to act as a rounded edge of a face
-    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - edgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - edgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge1.rotateZ(Math.PI/2);
     edge1.translate(0, halfSize, -halfSize);
 
-    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - edgeRadius * 2, smoothness, cylinderSegments, true, Math.PI * 3/4, Math.PI/4);
+    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - edgeRadius * 2, smoothness, cylinderSegments, true, Math.PI * 3/4, Math.PI/4);
     edge2.rotateX(Math.PI/2);
     edge2.translate(halfSize, halfSize, 0);
 
-    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - edgeRadius * 2, smoothness, cylinderSegments, true, Math.PI/4, Math.PI/4);
+    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - edgeRadius * 2, smoothness, cylinderSegments, true, Math.PI/4, Math.PI/4);
     edge3.rotateZ(Math.PI/2);
     edge3.translate(0, halfSize, halfSize);
 
-    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - edgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI, Math.PI/2);
+    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - edgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI, Math.PI/2);
     edge4.rotateX(Math.PI/2);
     edge4.translate(-halfSize, halfSize, 0);
 
@@ -139,9 +127,9 @@ export function constructCorner(
 
     // side
     // create new plane to act as a face of the cube
-    let side = new THREE.PlaneGeometry(size - edgeRadius * 2, size - edgeRadius * 2);
+    let side = new THREE.PlaneGeometry(pieceSize - edgeRadius * 2, pieceSize - edgeRadius * 2);
     side.rotateX(-Math.PI/2);
-    side.translate(0, size/2, 0);
+    side.translate(0, pieceSize/2, 0);
 
 
 
@@ -163,29 +151,26 @@ export function constructCorner(
     rightFace.rotateY(-Math.PI/2);
     rightFace.rotateZ(-Math.PI/2);
 
-    // convert the faces to meshes and add them to the group, with their color depending on whether or not they are to be drawn as wire frames or not
-    if (isWireFrame) {
-        group.add(new THREE.Mesh(topFace, wireFrameWhite));
-        group.add(new THREE.Mesh(frontFace, wireFrameGreen));
-        group.add(new THREE.Mesh(rightFace, wireFrameRed));
-    } else {
-        group.add(new THREE.Mesh(topFace, upColor));
-        group.add(new THREE.Mesh(frontFace, frontColor));
-        group.add(new THREE.Mesh(rightFace, rightColor));
-    }
+    // convert the faces to meshes and add them to the group
 
+    group.add(new THREE.Mesh(topFace, upColor.color));
+    group.add(new THREE.Mesh(frontFace, frontColor.color));
+    group.add(new THREE.Mesh(rightFace, rightColor.color));
+
+
+    
 
     // perform lots of math that I can't properly explain without visuals
     // this determines the positioning and size of a spherical portion of the back side of the corner piece
-    const alpha = Math.atan( (size) / Math.sqrt(2 * (size - edgeRadius - (edgeRadius * Math.sin(Math.PI/4)) * 2) ** 2) );
+    const alpha = Math.atan( (pieceSize) / Math.sqrt(2 * (pieceSize - edgeRadius - (edgeRadius * Math.sin(Math.PI/4)) * 2) ** 2) );
 
-    const newArcTop = Math.asin( (size/2 - edgeRadius) / (size*2) + Math.sin(alpha) ) - alpha;
+    const newArcTop = Math.asin( (pieceSize/2 - edgeRadius) / (pieceSize*2) + Math.sin(alpha) ) - alpha;
     const newArcBottom = alpha - Math.asin(Math.sin(alpha) - 1/4);
 
-    const horizontalArc = Math.acos((2 * ((size*2) * Math.cos(alpha - newArcBottom))**2 - 2 * (size - edgeRadius * 2)**2) / (2 * ((size*2) * Math.cos(alpha - newArcBottom))**2));
+    const horizontalArc = Math.acos((2 * ((pieceSize*2) * Math.cos(alpha - newArcBottom))**2 - 2 * (pieceSize - edgeRadius * 2)**2) / (2 * ((pieceSize*2) * Math.cos(alpha - newArcBottom))**2));
     const horizontalRot = Math.PI/4 - horizontalArc/2;
 
-    const a = size*2;
+    const a = pieceSize*2;
     const b = alpha - newArcBottom;
     const c = horizontalRot;
     const d = edgeRadius;
@@ -196,7 +181,7 @@ export function constructCorner(
 
     const verticalRot = Math.PI/2 - (alpha - newArcBottom) - verticalArc;
 
-    const cutoutRad = (size*2) * Math.cos(alpha - newArcBottom);
+    const cutoutRad = (pieceSize*2) * Math.cos(alpha - newArcBottom);
 
     // create circle that will act as a cutout of a square for the back sides of the sphere
     let cutout = new THREE.CircleGeometry(cutoutRad, smoothness * 2, horizontalRot, horizontalArc);
@@ -246,18 +231,18 @@ export function constructCorner(
     backCutout.translate(0, -halfSize - edgeRadius, 0);
 
     // define variables to simplify the code for the height and positioning of the back side edges
-    const backEdgeHeight = size - edgeRadius - backEdgeRadius;
+    const backEdgeHeight = pieceSize - edgeRadius - backEdgeRadius;
     const backEdgeZOffset = halfSize - backEdgeHeight/2;
 
     // define vertices for a face of the back side
     let backFaceVertices = [
-        -size/2 + backEdgeRadius, -size/2, -size/2 + backEdgeRadius,
-         size/2 - edgeRadius,     -size/2, -size/2 + backEdgeRadius,
-        -size/2 + backEdgeRadius, -size/2,  size/2 - edgeRadius,
+        -pieceSize/2 + backEdgeRadius, -pieceSize/2, -pieceSize/2 + backEdgeRadius,
+         pieceSize/2 - edgeRadius,     -pieceSize/2, -pieceSize/2 + backEdgeRadius,
+        -pieceSize/2 + backEdgeRadius, -pieceSize/2,  pieceSize/2 - edgeRadius,
 
-         size/2 - edgeRadius,     -size/2, -size/2 + backEdgeRadius,
-         size/2 - edgeRadius,     -size/2,  size/2 - edgeRadius,
-        -size/2 + backEdgeRadius, -size/2,  size/2 - edgeRadius,
+         pieceSize/2 - edgeRadius,     -pieceSize/2, -pieceSize/2 + backEdgeRadius,
+         pieceSize/2 - edgeRadius,     -pieceSize/2,  pieceSize/2 - edgeRadius,
+        -pieceSize/2 + backEdgeRadius, -pieceSize/2,  pieceSize/2 - edgeRadius,
     ];
     // define indices for a face of the back side
     let backFaceIndices = [
@@ -279,21 +264,21 @@ export function constructCorner(
     // maybe taper this inwards?
     let backEdge = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, backEdgeHeight, smoothness, cylinderSegments, true, -Math.PI/2, Math.PI/2);
     backEdge.rotateX(Math.PI/2);
-    backEdge.translate(-size/2 + backEdgeRadius, -halfSize - edgeRadius + backEdgeRadius, backEdgeZOffset);
+    backEdge.translate(-pieceSize/2 + backEdgeRadius, -halfSize - edgeRadius + backEdgeRadius, backEdgeZOffset);
 
 
     //  create sphere to act as the corner piece of the rounded back edges
     let backCorner = new THREE.SphereGeometry(backEdgeRadius, smoothness, smoothness, -Math.PI/2, Math.PI/2, Math.PI/2, Math.PI/2);
-    backCorner.translate(-size/2 + backEdgeRadius, -size/2 + backEdgeRadius, -size/2 + backEdgeRadius);
+    backCorner.translate(-pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius);
 
 
     // create sphere to act as a curved and rounded portion of the back side of the corner piece
-    let backSphereTemplate = new THREE.SphereGeometry(size * 2, smoothness * 2, 5, Math.PI/2 + horizontalRot, horizontalArc, verticalRot, verticalArc);
+    let backSphereTemplate = new THREE.SphereGeometry(pieceSize * 2, smoothness * 2, 5, Math.PI/2 + horizontalRot, horizontalArc, verticalRot, verticalArc);
 
     backSphereTemplate.translate(
-         halfSize - ((size*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot),
-        -halfSize - ((size*2) * Math.sin(alpha - newArcBottom)) - edgeRadius,
-         halfSize - ((size*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot),
+         halfSize - ((pieceSize*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot),
+        -halfSize - ((pieceSize*2) * Math.sin(alpha - newArcBottom)) - edgeRadius,
+         halfSize - ((pieceSize*2) * Math.cos(alpha - newArcBottom)) * Math.cos(horizontalRot),
     );
 
     // create circle to seamlessly fill in a portion of the back side of the corner piece that isn't covered by other pieces
@@ -307,14 +292,14 @@ export function constructCorner(
     let cornerPoints = fillCornerTemplate.getAttribute("position");
 
     // determine the x, y, z coordinates of the center point of the fill corner
-    const pointX = -(size/2) + edgeRadius - (size*2) * (Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.sin(horizontalRot);
+    const pointX = -(pieceSize/2) + edgeRadius - (pieceSize*2) * (Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.sin(horizontalRot);
     const pointY = pointX;
-    const pointZ = halfSize - (size*2) * (Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.cos(horizontalRot);
+    const pointZ = halfSize - (pieceSize*2) * (Math.cos(alpha - newArcBottom) - Math.cos(segSize + (alpha - newArcBottom))) * Math.cos(horizontalRot);
 
     // define initial vertices for the fill corner
     let fillCornerVertices = [
         pointX, pointY, pointZ,
-        size / -2, (size - edgeRadius * 2) / -2, (size - edgeRadius * 2) / 2
+        pieceSize / -2, (pieceSize - edgeRadius * 2) / -2, (pieceSize - edgeRadius * 2) / 2
     ];
 
     // define empty array to store the indices that make up the fill corner
@@ -367,13 +352,16 @@ export function constructCorner(
 
 
 
-    if (isWireFrame) {
-        // group.add(new THREE.Mesh(backSphere1, wireFrameGray));
-        group.add(new THREE.Mesh(innerSide, wireFrameGray));
-    } else {
-        // group.add(new THREE.Mesh(backSphere1, innerColor));
-        group.add(new THREE.Mesh(innerSide, innerColor));
-    }
+    group.add(new THREE.Mesh(innerSide, innerColor.color));
+
+
+    group.translateX(upColor.coordinateOffset.x + frontColor.coordinateOffset.x + rightColor.coordinateOffset.x);
+    group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y + rightColor.coordinateOffset.y);
+    group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z + rightColor.coordinateOffset.z);
+
+    group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
+    group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
+    group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
 
     
 
@@ -386,18 +374,16 @@ export function constructCorner(
 // define function to create an edge piece for a rubiks cube
 // take in arguments for size, face colors, inner color,  and whether or not to draw as a wire frame or not
 export function constructEdge(
-    size: number, 
-    upColor: THREE.MeshBasicMaterial, 
-    frontColor: THREE.MeshBasicMaterial, 
-    innerColor: THREE.MeshBasicMaterial, 
-    isWireFrame = false
+    upColor: ColorType, 
+    frontColor: ColorType, 
+    innerColor: ColorType = gray
 ) {
 
     // define constant for the radius of the rounded back edges
-    const backEdgeRadius = size/4;
+    const backEdgeRadius = pieceSize/4;
 
     // define constant for half the size of the cube minus the edge size
-    const halfSize = size * 0.5 - edgeRadius;
+    const halfSize = pieceSize * 0.5 - edgeRadius;
 
     // create new group to store all parts of the corner piece in a single variable
     let group = new THREE.Group();
@@ -407,12 +393,12 @@ export function constructEdge(
     let corner1 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner1.rotateX(Math.PI/2);
     corner1.rotateY(Math.PI);
-    corner1.translate(-size/2 + backEdgeRadius, size/2 - edgeRadius, -size/2 + backEdgeRadius);
+    corner1.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
     let corner2 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner2.rotateX(Math.PI/2);
     corner2.rotateY(Math.PI/2);
-    corner2.translate(size/2 - backEdgeRadius, size/2 - edgeRadius, -size/2 + backEdgeRadius);
+    corner2.translate(pieceSize/2 - backEdgeRadius, pieceSize/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
     // create rounded corner by making a sphere
     let corner3 = new THREE.SphereGeometry(edgeRadius, smoothness, smoothness * 2, 0, Math.PI/4, 0, Math.PI/2);
@@ -427,19 +413,19 @@ export function constructEdge(
     
     // edges
     // create rounded edges using cylinders
-    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge1.rotateZ(Math.PI/2);
     edge1.translate(0, halfSize, -halfSize);
 
-    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius - edgeRadius, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius - edgeRadius, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge2.rotateX(Math.PI/2);
     edge2.translate(halfSize, halfSize, (backEdgeRadius - edgeRadius)/2);
 
-    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - edgeRadius * 2,              smoothness * 2, cylinderSegments, true, Math.PI/4, Math.PI/4);
+    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - edgeRadius * 2,              smoothness * 2, cylinderSegments, true, Math.PI/4, Math.PI/4);
     edge3.rotateZ(Math.PI/2);
     edge3.translate(0, halfSize, halfSize);
 
-    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius - edgeRadius, smoothness * 2, cylinderSegments, true, Math.PI, Math.PI/2);
+    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius - edgeRadius, smoothness * 2, cylinderSegments, true, Math.PI, Math.PI/2);
     edge4.rotateX(Math.PI/2);
     edge4.translate(-halfSize, halfSize, (backEdgeRadius - edgeRadius)/2);
 
@@ -447,22 +433,22 @@ export function constructEdge(
 
     // side
     // create side pieces using planes
-    let sideSeg1 = new THREE.PlaneGeometry(size - edgeRadius * 2, size - backEdgeRadius - edgeRadius);
+    let sideSeg1 = new THREE.PlaneGeometry(pieceSize - edgeRadius * 2, pieceSize - backEdgeRadius - edgeRadius);
     sideSeg1.rotateX(-Math.PI/2);
-    sideSeg1.translate(0, size * 1/2, (backEdgeRadius - edgeRadius)/2);
+    sideSeg1.translate(0, pieceSize * 1/2, (backEdgeRadius - edgeRadius)/2);
 
-    let sideSeg2 = new THREE.PlaneGeometry(size - backEdgeRadius * 2, backEdgeRadius - edgeRadius);
+    let sideSeg2 = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, backEdgeRadius - edgeRadius);
     sideSeg2.rotateX(-Math.PI/2);
-    sideSeg2.translate(0, size/2, -size/2 + backEdgeRadius/2 + edgeRadius/2);
+    sideSeg2.translate(0, pieceSize/2, -pieceSize/2 + backEdgeRadius/2 + edgeRadius/2);
 
     // create side pieces to align with the curved corners by using circles
     let sideSeg3 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, Math.PI/2, Math.PI/2);
     sideSeg3.rotateX(-Math.PI/2);
-    sideSeg3.translate(-size/2 + backEdgeRadius, size/2, -size/2 + backEdgeRadius);
+    sideSeg3.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2, -pieceSize/2 + backEdgeRadius);
 
     let sideSeg4 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, 0, Math.PI/2);
     sideSeg4.rotateX(-Math.PI/2);
-    sideSeg4.translate(size/2 - backEdgeRadius, size/2, -size/2 + backEdgeRadius);
+    sideSeg4.translate(pieceSize/2 - backEdgeRadius, pieceSize/2, -pieceSize/2 + backEdgeRadius);
 
     // create buffer geometry to combine the pieces of the top face
     let topFace = new ExBufferGeometry();
@@ -478,39 +464,35 @@ export function constructEdge(
     frontFace.rotateX(Math.PI/2);
 
     // add top and front faces to the main group
-    if (isWireFrame) {
-        group.add(new THREE.Mesh(topFace, wireFrameWhite));
-        group.add(new THREE.Mesh(frontFace, wireFrameGreen));
-    } else {
-        group.add(new THREE.Mesh(topFace, upColor));
-        group.add(new THREE.Mesh(frontFace, frontColor));
-    }
 
+    group.add(new THREE.Mesh(topFace, upColor.color));
+    group.add(new THREE.Mesh(frontFace, frontColor.color));
+    
 
 
     // back side
     // create rounded edges for the back side of the edge piece using cylinders
-    let backEdge1 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, size - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, -Math.PI/2, Math.PI/2);
+    let backEdge1 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, -Math.PI/2, Math.PI/2);
     backEdge1.rotateY(-Math.PI/2);
-    backEdge1.translate(-size/2 + backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -size/2 + backEdgeRadius);
+    backEdge1.translate(-pieceSize/2 + backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
-    let backEdge2 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, size - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, Math.PI/1, Math.PI/2);
+    let backEdge2 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, Math.PI/1, Math.PI/2);
     backEdge2.rotateY(-Math.PI/2);
-    backEdge2.translate(size/2 - backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -size/2 + backEdgeRadius);
+    backEdge2.translate(pieceSize/2 - backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
 
     // create faces for the back side of the edge piece using planes
-    let backFace1 = new THREE.PlaneGeometry(size - backEdgeRadius * 2, size - edgeRadius - backEdgeRadius);
-    backFace1.translate(0, (backEdgeRadius - edgeRadius)/2, -size/2);
+    let backFace1 = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, pieceSize - edgeRadius - backEdgeRadius);
+    backFace1.translate(0, (backEdgeRadius - edgeRadius)/2, -pieceSize/2);
 
-    let backFace2 = new THREE.PlaneGeometry(size - backEdgeRadius - edgeRadius, size - backEdgeRadius - edgeRadius);
+    let backFace2 = new THREE.PlaneGeometry(pieceSize - backEdgeRadius - edgeRadius, pieceSize - backEdgeRadius - edgeRadius);
     backFace2.rotateY(Math.PI/2);
-    backFace2.translate(-size/2, (backEdgeRadius - edgeRadius)/2, (backEdgeRadius - edgeRadius)/2);
+    backFace2.translate(-pieceSize/2, (backEdgeRadius - edgeRadius)/2, (backEdgeRadius - edgeRadius)/2);
 
     // create rounded corner for the back side of the corner piece using a sphere
     let backCorner = new THREE.SphereGeometry(backEdgeRadius, smoothness * 2, smoothness * 2, -Math.PI/2, Math.PI/2, 0, Math.PI/2);
     backCorner.rotateZ(Math.PI/2);
-    backCorner.translate(-size/2 + backEdgeRadius, -size/2 + backEdgeRadius, -size/2 + backEdgeRadius);
+    backCorner.translate(-pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius);
 
     // create a buffer geometry to store all the pieces of one half of the back side in a single variable
     let innerSide1 = new ExBufferGeometry();
@@ -524,9 +506,9 @@ export function constructEdge(
     innerSide2.rotateX(-Math.PI/2);
 
     // make extra inner edge to fill the last gap in the back side of the edge piece
-    let innerEdge = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, size - backEdgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let innerEdge = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - backEdgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     innerEdge.rotateZ(-Math.PI/2);
-    innerEdge.translate(0, -size/2 + backEdgeRadius, -size/2 + backEdgeRadius);
+    innerEdge.translate(0, -pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius);
 
     // make buffer geometry to store all componenets of the inner side of the edge piece
     let innerSide = new ExBufferGeometry();
@@ -535,15 +517,15 @@ export function constructEdge(
     innerSide.mergeShapes(innerSide1, innerSide2, innerEdge);
 
     // add inner side to the main group
-    if (isWireFrame) {
-        // group.add(new THREE.Mesh(innerSide1, wireFrameGray));
-        group.add(new THREE.Mesh(innerSide, wireFrameGray));
-    } else {
-        // group.add(new THREE.Mesh(innerSide1, innerColor));
-        group.add(new THREE.Mesh(innerSide, innerColor));
-    }
+    group.add(new THREE.Mesh(innerSide, innerColor.color));
 
+    group.translateX(upColor.coordinateOffset.x + frontColor.coordinateOffset.x);
+    group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y);
+    group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z);
 
+    group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
+    group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
+    group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
     
     // return the main group
     return group;
@@ -553,17 +535,15 @@ export function constructEdge(
 // define function to create a center piece for a rubiks cube
 // take in arguments for size, face color, inner color, and whether or not to draw as a wire frame or not
 export function constructCenter(
-    size: number, 
-    faceColor: THREE.MeshBasicMaterial, 
-    innerColor: THREE.MeshBasicMaterial, 
-    isWireFrame = false
+    upColor: ColorType, 
+    innerColor: ColorType = gray
 ) {
 
     // define constant for the radius of the rounded back edges
-    const backEdgeRadius = size/4;
+    const backEdgeRadius = pieceSize/4;
 
     // define constant for half the size of the cube minus the edge size
-    const halfSize = size * 0.5 - edgeRadius;
+    const halfSize = pieceSize * 0.5 - edgeRadius;
 
     // create new group to store all parts of the center piece in a single variable
     let group = new THREE.Group();
@@ -573,41 +553,41 @@ export function constructCenter(
     let corner1 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner1.rotateX(Math.PI/2);
     corner1.rotateY(Math.PI);
-    corner1.translate(-size/2 + backEdgeRadius, size/2 - edgeRadius, -size/2 + backEdgeRadius);
+    corner1.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
     let corner2 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner2.rotateX(Math.PI/2);
     corner2.rotateY(Math.PI/2);
-    corner2.translate(size/2 - backEdgeRadius, size/2 - edgeRadius, -size/2 + backEdgeRadius);
+    corner2.translate(pieceSize/2 - backEdgeRadius, pieceSize/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
     let corner3 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner3.rotateX(Math.PI/2);
-    corner3.translate(size/2 - backEdgeRadius, size/2 - edgeRadius, size/2 - backEdgeRadius);
+    corner3.translate(pieceSize/2 - backEdgeRadius, pieceSize/2 - edgeRadius, pieceSize/2 - backEdgeRadius);
 
     let corner4 = new THREE.TorusGeometry(backEdgeRadius - edgeRadius, edgeRadius, smoothness * 8, smoothness * 2, Math.PI/2);
     corner4.rotateX(Math.PI/2);
     corner4.rotateY(-Math.PI/2);
-    corner4.translate(-size/2 + backEdgeRadius, size/2 - edgeRadius, size/2 - backEdgeRadius);
+    corner4.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2 - edgeRadius, pieceSize/2 - backEdgeRadius);
 
 
 
     // edges
     // create rounded edges using cylinders
-    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge1 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge1.rotateZ(Math.PI/2);
     edge1.translate(0, halfSize, -halfSize);
 
-    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge2 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge2.rotateZ(Math.PI/2);
     edge2.rotateY(-Math.PI/2);
     edge2.translate(halfSize, halfSize, 0);
 
-    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge3 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge3.rotateZ(Math.PI/2);
     edge3.rotateY(Math.PI);
     edge3.translate(0, halfSize, halfSize);
 
-    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, size - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let edge4 = new THREE.CylinderGeometry(edgeRadius, edgeRadius, pieceSize - backEdgeRadius * 2,          smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     edge4.rotateZ(Math.PI/2);
     edge4.rotateY(Math.PI/2);
     edge4.translate(-halfSize, halfSize, 0);
@@ -616,34 +596,34 @@ export function constructCenter(
 
     // side
     // create side pieces using planes
-    let sideSeg1 = new THREE.PlaneGeometry(size - backEdgeRadius * 2, size - edgeRadius * 2);
+    let sideSeg1 = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, pieceSize - edgeRadius * 2);
     sideSeg1.rotateX(-Math.PI/2);
-    sideSeg1.translate(0, size/2, 0);
+    sideSeg1.translate(0, pieceSize/2, 0);
 
-    let sideSeg2 = new THREE.PlaneGeometry(backEdgeRadius - edgeRadius, size - backEdgeRadius * 2);
+    let sideSeg2 = new THREE.PlaneGeometry(backEdgeRadius - edgeRadius, pieceSize - backEdgeRadius * 2);
     sideSeg2.rotateX(-Math.PI/2);
-    sideSeg2.translate((size - backEdgeRadius - edgeRadius)/2, size/2, 0);
+    sideSeg2.translate((pieceSize - backEdgeRadius - edgeRadius)/2, pieceSize/2, 0);
 
-    let sideSeg3 = new THREE.PlaneGeometry(backEdgeRadius - edgeRadius, size - backEdgeRadius * 2);
+    let sideSeg3 = new THREE.PlaneGeometry(backEdgeRadius - edgeRadius, pieceSize - backEdgeRadius * 2);
     sideSeg3.rotateX(-Math.PI/2);
-    sideSeg3.translate((-size + backEdgeRadius + edgeRadius)/2, size/2, 0);
+    sideSeg3.translate((-pieceSize + backEdgeRadius + edgeRadius)/2, pieceSize/2, 0);
 
     // create side pieces to align with the curved corners by using circles
     let sideSeg4 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, Math.PI/2, Math.PI/2);
     sideSeg4.rotateX(-Math.PI/2);
-    sideSeg4.translate(-size/2 + backEdgeRadius, size/2, -size/2 + backEdgeRadius);
+    sideSeg4.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2, -pieceSize/2 + backEdgeRadius);
 
     let sideSeg5 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, 0, Math.PI/2);
     sideSeg5.rotateX(-Math.PI/2);
-    sideSeg5.translate(size/2 - backEdgeRadius, size/2, -size/2 + backEdgeRadius);
+    sideSeg5.translate(pieceSize/2 - backEdgeRadius, pieceSize/2, -pieceSize/2 + backEdgeRadius);
 
     let sideSeg6 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, -Math.PI/2, Math.PI/2);
     sideSeg6.rotateX(-Math.PI/2);
-    sideSeg6.translate(size/2 - backEdgeRadius, size/2, size/2 - backEdgeRadius);
+    sideSeg6.translate(pieceSize/2 - backEdgeRadius, pieceSize/2, pieceSize/2 - backEdgeRadius);
 
     let sideSeg7 = new THREE.CircleGeometry(backEdgeRadius - edgeRadius, smoothness * 2, Math.PI, Math.PI/2);
     sideSeg7.rotateX(-Math.PI/2);
-    sideSeg7.translate(-size/2 + backEdgeRadius, size/2, size/2 - backEdgeRadius);
+    sideSeg7.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2, pieceSize/2 - backEdgeRadius);
 
 
 
@@ -654,31 +634,27 @@ export function constructCenter(
     topFace.mergeShapes(corner1, corner2, corner3, corner4, edge1, edge2, edge3, edge4, sideSeg1, sideSeg2, sideSeg3, sideSeg4, sideSeg5, sideSeg6, sideSeg7);
 
     // add top face to the main group
-    if (isWireFrame) {
-        group.add(new THREE.Mesh(topFace, wireFrameWhite));
-    } else {
-        group.add(new THREE.Mesh(topFace, faceColor));
-    }
+    group.add(new THREE.Mesh(topFace, upColor.color));
 
 
 
     // inner side
     // create rounded edges for the back side of the center piece using cylinders
-    let backEdge1 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, size - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, -Math.PI/2, Math.PI/2);
+    let backEdge1 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - edgeRadius - backEdgeRadius, smoothness * 2, cylinderSegments, true, -Math.PI/2, Math.PI/2);
     backEdge1.rotateY(-Math.PI/2);
-    backEdge1.translate(-size/2 + backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -size/2 + backEdgeRadius);
+    backEdge1.translate(-pieceSize/2 + backEdgeRadius, edgeRadius/2 + backEdgeRadius/2 - edgeRadius, -pieceSize/2 + backEdgeRadius);
 
-    let backEdge2 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, size - backEdgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    let backEdge2 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - backEdgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
     backEdge2.rotateZ(-Math.PI/2);
-    backEdge2.translate(0, -size/2 + backEdgeRadius, -size/2 + backEdgeRadius);
+    backEdge2.translate(0, -pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius);
 
     // create face for the back side of the edge piece using planes
-    let backFace = new THREE.PlaneGeometry(size - backEdgeRadius * 2, size - edgeRadius - backEdgeRadius);
-    backFace.translate(0, (backEdgeRadius - edgeRadius)/2, -size/2);
+    let backFace = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, pieceSize - edgeRadius - backEdgeRadius);
+    backFace.translate(0, (backEdgeRadius - edgeRadius)/2, -pieceSize/2);
 
     // create rounded corner for the back side of the corner piece using a sphere
     let backCorner = new THREE.SphereGeometry(backEdgeRadius, smoothness * 2, smoothness * 2, -Math.PI/2, Math.PI/2, Math.PI/2, Math.PI/2);
-    backCorner.translate(-size/2 + backEdgeRadius, -size/2 + backEdgeRadius, -size/2 + backEdgeRadius);
+    backCorner.translate(-pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius, -pieceSize/2 + backEdgeRadius);
 
 
     // create a buffer geometry to store all the pieces of one half of the back side in a single variable
@@ -700,9 +676,9 @@ export function constructCenter(
 
 
     // create additional face to fill the bottom of the center piece
-    let bottomFace = new THREE.PlaneGeometry(size - backEdgeRadius * 2, size - backEdgeRadius * 2);
+    let bottomFace = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, pieceSize - backEdgeRadius * 2);
     bottomFace.rotateX(-Math.PI/2);
-    bottomFace.translate(0, -size/2, 0);
+    bottomFace.translate(0, -pieceSize/2, 0);
 
 
     // make buffer geometry to store all componenets of the inner side of the edge piece
@@ -712,15 +688,15 @@ export function constructCenter(
     innerSide.mergeShapes(innerSide1, innerSide2, innerSide3, innerSide4, bottomFace);
 
     // add inner side to the main group
-    if (isWireFrame) {
-        // group.add(new THREE.Mesh(innerSide1, wireFrameGray));
-        group.add(new THREE.Mesh(innerSide, wireFrameGray));
-    } else {
-        // group.add(new THREE.Mesh(innerSide1, innerColor));
-        group.add(new THREE.Mesh(innerSide, innerColor));
-    }
+    group.add(new THREE.Mesh(innerSide, innerColor.color));
+   
+    group.translateX(upColor.coordinateOffset.x);
+    group.translateY(upColor.coordinateOffset.y);
+    group.translateZ(upColor.coordinateOffset.z);
 
-
+    group.rotateX(upColor.upRotationOffset.x);
+    group.rotateY(upColor.upRotationOffset.y);
+    group.rotateZ(upColor.upRotationOffset.z);
 
     // return the main group
     return group;
