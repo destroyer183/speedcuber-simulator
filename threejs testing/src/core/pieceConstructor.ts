@@ -4,8 +4,7 @@ import { ColorType, pieceSize, gray } from './cubeData';
 
 const smoothness = 9; // define constant for number of segments for shapes
 const edgeRadius = 0.2; // define constant for radius of curved edges 
-const cylinderSegments = 1;
-
+const cylinderSegments = 1; // define constant for number of vertical radial cylinder segments
 
 
 
@@ -39,19 +38,6 @@ class ExBufferGeometry extends THREE.BufferGeometry {
 }
 
 }
-
-
-
-
-
-// updatePosition
-
-
-
-
-// updateIndex
-
-
 
 
 
@@ -152,7 +138,6 @@ export function constructCorner(
     rightFace.rotateZ(-Math.PI/2);
 
     // convert the faces to meshes and add them to the group
-
     group.add(new THREE.Mesh(topFace, upColor.color));
     group.add(new THREE.Mesh(frontFace, frontColor.color));
     group.add(new THREE.Mesh(rightFace, rightColor.color));
@@ -350,20 +335,22 @@ export function constructCorner(
     // merge all parts of the back piece into a sigle buffer geometry
     innerSide.mergeShapes(backPiece1, backPiece2, backPiece3, backCorner);
 
-
-
+    // add inner side to group
     group.add(new THREE.Mesh(innerSide, innerColor.color));
 
-
+    // rotate cube into correct orientation
     group.translateX(upColor.coordinateOffset.x + frontColor.coordinateOffset.x + rightColor.coordinateOffset.x);
     group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y + rightColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z + rightColor.coordinateOffset.z);
 
+    // rotate cube into correct orientation
     group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
     group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
 
-    
+    // add shadow functionality
+    group.castShadow = true;
+    group.receiveShadow = true;
 
     // return the group containing all four pieces of the corner piece
     return group;
@@ -519,14 +506,20 @@ export function constructEdge(
     // add inner side to the main group
     group.add(new THREE.Mesh(innerSide, innerColor.color));
 
+    // translate piece into correct rotation
     group.translateX(upColor.coordinateOffset.x + frontColor.coordinateOffset.x);
     group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z);
 
+    // rotate cube into correct orientation
     group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
     group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
     
+    // add shadow functionality
+    group.castShadow = true;
+    group.receiveShadow = true;
+
     // return the main group
     return group;
 }
@@ -690,14 +683,20 @@ export function constructCenter(
     // add inner side to the main group
     group.add(new THREE.Mesh(innerSide, innerColor.color));
    
+    // translate piece into correct rotation
     group.translateX(upColor.coordinateOffset.x);
     group.translateY(upColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z);
 
+    // rotate cube into correct orientation
     group.rotateX(upColor.upRotationOffset.x);
     group.rotateY(upColor.upRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z);
 
+    // add shadow functionality
+    group.castShadow = true;
+    group.receiveShadow = true;
+    
     // return the main group
     return group;
 }
