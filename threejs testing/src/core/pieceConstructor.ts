@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ColorType, pieceSize, gray } from './cubeData';
+import { ColorType, pieceSize, gray } from './dataTypes';
 
 
 const smoothness = 9; // define constant for number of segments for shapes
@@ -14,41 +14,42 @@ class ExBufferGeometry extends THREE.BufferGeometry {
 
     mergeShapes(...shapes: any[]) {
 
-    // define variable to store the vertices that make up buffer geometries
-    let vertices = [];
+        // define variable to store the vertices that make up buffer geometries
+        let vertices = [];
 
-    // define variable to store the indices of the vertices that make up buffer geometries
-    // each three consecutive values in this array are indices of different points in the vertices array, 
-    // which each set of points representing a triangular plane that will be drawn
-    let indices = [];
+        // define variable to store the indices of the vertices that make up buffer geometries
+        // each three consecutive values in this array are indices of different points in the vertices array, 
+        // which each set of points representing a triangular plane that will be drawn
+        let indices = [];
 
-    // loop over very buffer geometry passed in
-    for (let shape of shapes) {
-        indices.push(...([...shape.getIndex()!.array].map(item => item + vertices.length / 3))); // add indices from a geometry, and offset them by the number of previous vertices
-        vertices.push(...shape.getAttribute("position").array); // add vertices from a geometry
+        // add old content to vertices and indices
+        // use a try/catch statement to avoid unnecessary crashes
+        try {
+            vertices.push(...this.getAttribute("position").array);
+            indices.push(...this.getIndex()!.array);
+        } catch {}
+
+        // loop over very buffer geometry passed in
+        for (let shape of shapes) {
+            indices.push(...([...shape.getIndex()!.array].map(item => item + vertices.length / 3))); // add indices from a geometry, and offset them by the number of previous vertices
+            vertices.push(...shape.getAttribute("position").array); // add vertices from a geometry
+        }
+
+        // convert vertices and indices to proper data types to merge them into the parent buffer geometry
+        const position = new THREE.Float32BufferAttribute(new Float32Array(vertices), 3);
+        const index = new THREE.Uint16BufferAttribute(new Uint16Array(indices), 1);
+
+        // update position and index attributes on parent buffer geometry
+        this.setAttribute("position", position);
+        this.setIndex(index);
     }
-
-    // convert vertices and indices to proper data types to merge them into the parent buffer geometry
-    const position = new THREE.Float32BufferAttribute(new Float32Array(vertices), 3);
-    const index = new THREE.Uint16BufferAttribute(new Uint16Array(indices), 1);
-
-    // update position and index attributes on parent buffer geometry
-    this.setAttribute("position", position);
-    this.setIndex(index);
-}
-
 }
 
 
 
 // define function to create a corner piece for a rubiks cube
 // take in arguments for size, face colors, inner color, and whether or not to draw as a wire frame or not
-export function constructCorner(
-    upColor: ColorType, 
-    frontColor: ColorType, 
-    rightColor: ColorType, 
-    innerColor: ColorType = gray
-) {
+export function constructCorner(upColor: ColorType, frontColor: ColorType, rightColor: ColorType, innerColor: ColorType = gray) {
 
     // define constant for radius of edges on the back piece of the corner
     const backEdgeRadius = pieceSize/4;
@@ -348,9 +349,7 @@ export function constructCorner(
     group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
 
-    // add shadow functionality
-    group.castShadow = true;
-    group.receiveShadow = true;
+
 
     // return the group containing all four pieces of the corner piece
     return group;
@@ -360,11 +359,7 @@ export function constructCorner(
 
 // define function to create an edge piece for a rubiks cube
 // take in arguments for size, face colors, inner color,  and whether or not to draw as a wire frame or not
-export function constructEdge(
-    upColor: ColorType, 
-    frontColor: ColorType, 
-    innerColor: ColorType = gray
-) {
+export function constructEdge(upColor: ColorType, frontColor: ColorType, innerColor: ColorType = gray) {
 
     // define constant for the radius of the rounded back edges
     const backEdgeRadius = pieceSize/4;
@@ -516,9 +511,7 @@ export function constructEdge(
     group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
     
-    // add shadow functionality
-    group.castShadow = true;
-    group.receiveShadow = true;
+
 
     // return the main group
     return group;
@@ -527,10 +520,7 @@ export function constructEdge(
 
 // define function to create a center piece for a rubiks cube
 // take in arguments for size, face color, inner color, and whether or not to draw as a wire frame or not
-export function constructCenter(
-    upColor: ColorType, 
-    innerColor: ColorType = gray
-) {
+export function constructCenter(upColor: ColorType, innerColor: ColorType = gray) {
 
     // define constant for the radius of the rounded back edges
     const backEdgeRadius = pieceSize/4;
@@ -693,14 +683,92 @@ export function constructCenter(
     group.rotateY(upColor.upRotationOffset.y);
     group.rotateZ(upColor.upRotationOffset.z);
 
-    // add shadow functionality
-    group.castShadow = true;
-    group.receiveShadow = true;
-    
+
+
     // return the main group
     return group;
 }
 
 
 
-// REMOVE EXTRA SEGMENTS FOR FLAT FACES WHEN DONE
+// function to create the middle piece of a rubiks cube, takes in one argument for the color of the piece
+export function constructOrigin(innerColor: ColorType = gray) {
+
+    // define constant for the radius of the rounded back edges
+    const backEdgeRadius = pieceSize/4;
+
+    // define constant for half the size of the cube minus the edge size
+    const halfSize = pieceSize * 0.5 - edgeRadius;
+
+    // create new group to store all parts of the center piece in a single variable
+    let group = new THREE.Group();
+
+    // corners
+    let corner1 = new THREE.SphereGeometry(backEdgeRadius, smoothness * 2, smoothness * 2, -Math.PI/2, Math.PI/2, 0, Math.PI/2);
+    corner1.translate(-pieceSize/2 + backEdgeRadius, pieceSize/2 - backEdgeRadius, -pieceSize/2 + backEdgeRadius);
+
+    let corner2 = corner1.clone();
+    corner2.rotateY(-Math.PI/2);
+
+    // edges
+    let edge1 = new THREE.CylinderGeometry(backEdgeRadius, backEdgeRadius, pieceSize - backEdgeRadius * 2, smoothness * 2, cylinderSegments, true, Math.PI/2, Math.PI/2);
+    edge1.rotateZ(Math.PI/2);
+    edge1.translate(0, pieceSize/2 - backEdgeRadius, -pieceSize/2 + backEdgeRadius);
+
+    let edge2 = edge1.clone();
+    let edge3 = edge1.clone();
+
+    edge2.rotateY(-Math.PI/2);
+    edge3.rotateY(Math.PI/2);
+
+    // faces
+    let face1 = new THREE.PlaneGeometry(pieceSize - backEdgeRadius * 2, pieceSize - backEdgeRadius * 2);
+    face1.rotateX(-Math.PI/2);
+    face1.translate(0, pieceSize/2, 0);
+
+    // make buffer geometry to store a section of the piece with a corners, edges, and a face
+    let piece1: ExBufferGeometry = new ExBufferGeometry();
+
+    // merge corner and edge together
+    piece1.mergeShapes(corner1, corner2, edge1, edge2, edge3, face1);
+
+    // duplicate piece
+    let piece2 = piece1.clone();
+    let piece3 = piece1.clone();
+    let piece4 = piece1.clone();
+
+    // rotate pieces into correct position
+    piece1.rotateZ(Math.PI/2);
+    piece2.rotateZ(Math.PI/2);
+    piece3.rotateZ(Math.PI/2);
+    piece4.rotateZ(Math.PI/2);
+
+    piece2.rotateY(-Math.PI/2);
+    piece3.rotateY(Math.PI);
+    piece4.rotateY(Math.PI/2);
+
+
+    // make buffer geometry to store all parts of the piece
+    let piece: ExBufferGeometry = new ExBufferGeometry();
+
+    // merge pieces together
+    piece.mergeShapes(piece1, piece2, piece3, piece4);
+
+    // clone face1 to make the top face of the piece
+    let topFace = face1.clone();
+
+    // clone face1 to make the bottom face of the piece
+    let bottomFace = face1.clone();
+
+    // translate bottom piece into correct position
+    bottomFace.translate(0, -pieceSize, 0);
+
+    // add top and bottom faces to the main piece
+    piece.mergeShapes(topFace, bottomFace);
+
+    // convert full piece to a mesh and add it to the main group
+    group.add(new THREE.Mesh(piece, innerColor.color));
+
+    // return the main group
+    return group;
+}

@@ -118,26 +118,4 @@ export var TileColor;
     TileColor["Y"] = "yellow";
 })(TileColor || (TileColor = {}));
 ;
-export var MoveType;
-(function (MoveType) {
-    MoveType["U"] = "UMove";
-    MoveType["L"] = "LMove";
-    MoveType["F"] = "FMove";
-    MoveType["R"] = "RMove";
-    MoveType["B"] = "BMove";
-    MoveType["D"] = "DMove";
-    MoveType["u"] = "uMove";
-    MoveType["l"] = "lMove";
-    MoveType["f"] = "fMove";
-    MoveType["r"] = "rMove";
-    MoveType["b"] = "bMove";
-    MoveType["d"] = "dMove";
-    MoveType["x"] = "xMove";
-    MoveType["y"] = "yMove";
-    MoveType["z"] = "zMove";
-    MoveType["M"] = "MMove";
-    MoveType["E"] = "EMove";
-    MoveType["S"] = "SMove";
-})(MoveType || (MoveType = {}));
-;
-//# sourceMappingURL=cubeData.js.map
+//# sourceMappingURL=dataTypes.js.map

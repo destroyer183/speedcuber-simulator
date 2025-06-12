@@ -1,10 +1,12 @@
 import * as THREE from "three";
+import { MoveType } from "./cubeMoveType";
 
-
+// cube piece sizing and spacing
 const pieceSize = 5;
 const pieceGap = 0.05;
 const pieceOffset = pieceSize + pieceGap;
 
+// simple class to allow xyz data to be more easily understandable
 export class XYZ {
     constructor(
         public x: number,
@@ -13,6 +15,7 @@ export class XYZ {
     ) {}
 }
 
+// simple class to allow color variables to store more info for simpler rendering
 export class ColorType {
     constructor(
         public color: THREE.MeshBasicMaterial,
@@ -35,7 +38,7 @@ const white:  ColorType = new ColorType(colorWhite,  new XYZ(0, pieceOffset, 0),
 const orange: ColorType = new ColorType(colorOrange, new XYZ(-pieceOffset, 0, 0), new XYZ(0, 0, Math.PI/2),  new XYZ(0, -Math.PI/2, 0));
 const green:  ColorType = new ColorType(colorGreen,  new XYZ(0, 0, pieceOffset),  new XYZ(Math.PI/2, 0, 0),  new XYZ(0, 0, 0));
 const red:    ColorType = new ColorType(colorRed,    new XYZ(pieceOffset, 0, 0),  new XYZ(0, 0, -Math.PI/2), new XYZ(0, Math.PI/2, 0));
-const blue:   ColorType = new ColorType(colorBlue,   new XYZ(0, 0, -pieceOffset),  new XYZ(-Math.PI/2, 0, 0), new XYZ(0, Math.PI, 0));
+const blue:   ColorType = new ColorType(colorBlue,   new XYZ(0, 0, -pieceOffset), new XYZ(-Math.PI/2, 0, 0), new XYZ(0, Math.PI, 0));
 const yellow: ColorType = new ColorType(colorYellow, new XYZ(0, -pieceOffset, 0), new XYZ(0, 0, Math.PI));
 const gray:   ColorType = new ColorType(colorGray,   new XYZ(0, 0, 0), new XYZ(0, 0, 0));
 
@@ -131,3 +134,7 @@ export enum TileColor {
 };
 
 export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType};
+
+export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};
+
+export type MoveDataType = (CornerTile[] | EdgeTile[] | CenterTile[])[];

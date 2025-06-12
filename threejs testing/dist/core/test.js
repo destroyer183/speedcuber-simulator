@@ -46,7 +46,8 @@ function createHoleMesh(squareWidth, radius, segments, material) {
     return new THREE.Mesh(holeGeometry, material);
 }
 // Example Usage:
-const scene = new THREE.Scene();
+const ;
+this.scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,13 +59,13 @@ const material = new THREE.MeshBasicMaterial({
 });
 // Create the square with a hole
 const holeMesh = createHoleMesh(2, 0.5, 32, material); // squareWidth, radius, segments, material
-scene.add(holeMesh);
+this.scene.add(holeMesh);
 // Set camera position
 camera.position.z = 3;
 // Render the scene
 function animate() {
     requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+    renderer.render(this.scene, camera);
 }
 animate();
 //# sourceMappingURL=test.js.map
