@@ -81,8 +81,7 @@ export class Cube {
         // set the background color of the renderer
         renderer.setClearColor(0x696969);
         // create rendering scene
-        const scene = new THREE.Scene();
-        this._scene = scene;
+        this._scene = new THREE.Scene();
         // create camera for the scene
         const camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
         // move the camera away from the origin in the Z direction
@@ -106,7 +105,7 @@ export class Cube {
             camera.position.y = Math.sin(y) * 25;
             camera.position.z = Math.cos(x) * Math.cos(y) * 25;
             // make camrea point at the origin
-            camera.lookAt(scene.position);
+            camera.lookAt(Cube.instance.scene.position);
         }, false);
         // create recursive function to render the scene
         function render() {
@@ -115,7 +114,7 @@ export class Cube {
             // call function to render the current state of the cube
             Cube.instance.renderCube();
             // render the scene
-            renderer.render(scene, camera);
+            renderer.render(Cube.instance.scene, camera);
         }
         // call recursive function
         render();
@@ -156,11 +155,9 @@ export class Cube {
                 // update variable to show that the turn is no longer active
                 this.turnActive = false;
                 // add pieces attached to the origin piece back to the main scene
-                for (let piece of [...this.origin.children]) {
-                    // piece.removeFromParent();
-                    this.scene.add(piece);
-                    console.log("yes");
-                }
+                // for (let piece of [...this.origin.children]) this.scene.add(piece);
+                for (let piece of this.origin.children)
+                    scene.add(piece);
                 // clear children attached to the origin piece
                 this.origin.clear();
             }
@@ -336,10 +333,10 @@ export class Cube {
 }
 function main() {
     let test = new Cube();
-    test.moveQueue.enqueue({ moveType: Move.R, count: 1, prime: false, speed: 0.03 });
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.03});
-    // test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: true,  speed: 0.03});
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: true,  speed: 0.03});
+    test.moveQueue.enqueue({ moveType: Move.R, count: 1, prime: false, speed: 0.02 });
+    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.02});
+    // test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: true,  speed: 0.02});
+    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: true,  speed: 0.02});
 }
 main();
 //# sourceMappingURL=main.js.map

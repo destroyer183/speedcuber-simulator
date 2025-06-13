@@ -118,8 +118,7 @@ export class Cube {
         renderer.setClearColor(0x696969);
 
         // create rendering scene
-        const scene = new THREE.Scene();
-        this._scene = scene;
+        this._scene = new THREE.Scene();
 
         // create camera for the scene
         const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
@@ -150,7 +149,7 @@ export class Cube {
             camera.position.z = Math.cos(x) * Math.cos(y) * 25;
 
             // make camrea point at the origin
-            camera.lookAt(scene.position);
+            camera.lookAt(Cube.instance.scene.position);
 
         }, false); 
 
@@ -164,7 +163,7 @@ export class Cube {
             Cube.instance.renderCube();
 
             // render the scene
-            renderer.render(scene, camera);
+            renderer.render(Cube.instance.scene, camera);
         }
 
         // call recursive function
@@ -227,12 +226,8 @@ export class Cube {
                 this.turnActive = false;
 
                 // add pieces attached to the origin piece back to the main scene
-                for (let piece of [...this.origin.children]) { 
-                    // piece.removeFromParent();
-
-                    this.scene.add(piece);
-                    console.log("yes");
-                }
+                // for (let piece of [...this.origin.children]) this.scene.add(piece);
+                for (let piece of this.origin.children) scene.add(piece);
 
                 // clear children attached to the origin piece
                 this.origin.clear();
@@ -423,10 +418,10 @@ function main() {
 
     let test: Cube = new Cube();
 
-    test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: false, speed: 0.03});
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.03});
-    // test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: true,  speed: 0.03});
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: true,  speed: 0.03});
+    test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: false, speed: 0.02});
+    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.02});
+    // test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: true,  speed: 0.02});
+    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: true,  speed: 0.02});
 
 
 }
