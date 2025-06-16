@@ -5,7 +5,7 @@ import { constructCorner, constructEdge, constructCenter, constructOrigin } from
 import  * as MoveData from "./cubeMoveData";
 import { prime } from "./cubeMoveData";
 import * as Move from "./cubeMoveType";
-import { MoveNotation } from "./cubeMoveType";
+// import { MoveNotation } from "./cubeMoveType";
 import { Queue } from "./queue";
 
 
@@ -19,8 +19,8 @@ export class Cube {
     /** protected record attribute to keep track of the color and parent piece of each tile on the cube. */
     protected _position: Record<EdgeTile | CornerTile | CenterTile, CubeTile>;
 
-    /** protected 'Group' to act as the core piece of the cube, acts as the anchor for all cube turns. */
-    protected _origin: THREE.Group;
+    /** protected 'Group' to act as different layers of the cube to allow for multiple pieces to rotate around an origin. */
+    protected _rotationGroup: THREE.Group;
 
     /** protected queue to store every move that needs to be performed on the cube */
     public _moveQueue: Queue<CubeMove> = new Queue<CubeMove>();
@@ -36,6 +36,9 @@ export class Cube {
 
     /** protected boolean to represent whether or not a turn is currently being performed on the cube. */
     protected _turnActive: boolean = false;
+
+    /** protected number to act as a counter for time where no turn is performed */
+    protected _waitCounter: number = 0;
 
     /** protected variable that represents the current threejs scene */
     protected _scene: THREE.Scene;
@@ -55,8 +58,8 @@ export class Cube {
     protected get position(): Record<EdgeTile | CornerTile | CenterTile, CubeTile> {
         return this._position;
     }
-    protected get origin(): THREE.Group {
-        return this._origin;
+    protected get rotationGroup(): THREE.Group {
+        return this._rotationGroup;
     }
     public get moveQueue(): Queue<CubeMove> {
         return this._moveQueue;
@@ -73,6 +76,9 @@ export class Cube {
     protected get turnActive(): boolean {
         return this._turnActive;
     }
+    protected get waitCounter(): number {
+        return this._waitCounter;
+    }
     protected get scene(): THREE.Scene {
         return this._scene;
     }
@@ -80,8 +86,8 @@ export class Cube {
     protected set position(val: Record<CornerTile | EdgeTile | CenterTile, CubeTile>) {
         this._position = val;
     }
-    protected set origin(val: THREE.Group) {
-        this._origin = val;
+    protected set rotationGroup(val: THREE.Group) {
+        this._rotationGroup = val;
     }
     public set moveQueue(val: Queue<CubeMove>) {
         this._moveQueue = val;
@@ -94,6 +100,9 @@ export class Cube {
     }
     protected set turnData(val: XYZ) {
         this._turnData = val;
+    }
+    protected set waitCounter(val: number) {
+        this._waitCounter = val;
     }
     protected set turnActive(val: boolean) {
         this._turnActive = val;
@@ -123,8 +132,11 @@ export class Cube {
         // create camera for the scene
         const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
 
+        // create variable to control the zoom factor
+        const zoom: number = 40
+
         // move the camera away from the origin in the Z direction
-        camera.translateZ(25);
+        camera.translateZ(zoom);
         
         // add the camera to the scene
         this.scene.add(camera);
@@ -144,9 +156,9 @@ export class Cube {
             if (y < -Math.PI/2) y = -Math.PI/2;
 
             // set camera position based on the x and y coordinates of the mouse
-            camera.position.x = Math.sin(x) * Math.cos(y) * 25;
-            camera.position.y = Math.sin(y) * 25;
-            camera.position.z = Math.cos(x) * Math.cos(y) * 25;
+            camera.position.x = Math.sin(x) * Math.cos(y) * zoom;
+            camera.position.y = Math.sin(y) * zoom;
+            camera.position.z = Math.cos(x) * Math.cos(y) * zoom;
 
             // make camrea point at the origin
             camera.lookAt(Cube.instance.scene.position);
@@ -175,33 +187,49 @@ export class Cube {
     /** Protected function to render the cube and handle cube moves */
     protected renderCube() {
 
-        // shorten variable name to prevent lines of code from going off-screen
-        // let this: Cube = Cube.instance;
+        // check if a wait is being performed
+        if (this.waitCounter != 0) {
+
+            // print stuff to the console to take up time
+            console.log("wait");
+
+            // incrament the wait counter, and apply modulus so that it will reset to 0 when it reaches the count
+            this.waitCounter = (this.waitCounter + this.currTurn.speed) % this.currTurn.count;
+        }
 
         // check if a turn is currently being performed or if there are any turns currently in the queue
-        if (!this.turnActive && this.moveQueue.size()) {
-
-            // update variable to show that a turn is currently being performed
-            this.turnActive = true;
+        else if (!this.turnActive && this.moveQueue.size()) {
 
             // get the next turn in the queue
             this.currTurn = <CubeMove>this.moveQueue.dequeue();
 
+            // check if there is no move data
+            if (this.currTurn.moveType.move.length === 0) {
+
+                // incrament the wait counter so that a different case will trigger on the next iteration of the loop
+                this.waitCounter += this.currTurn.speed;
+
+                // exit current loop iteration
+                return;
+            }
+
+            // update variable to show that a turn is currently being performed
+            this.turnActive = true;
+
             // call function to properly apply the current move to the cube's variable data
             this.applyMove(this.currTurn);
 
-            // check if the current turn is a prime turn or not (is it counter-clockwise)
-            if (!this.currTurn.prime) {
-                // invert turn speed and turn count
-                this.currTurn.speed *= -1;
-                this.currTurn.count *= -1;
-            }
+            // adjust speed attribute to follow the proper direction if the standard rotation direction is counter-clockwise relative to the world axis
+            if (Math.max(this.currTurn.moveType.axis.x, this.currTurn.moveType.axis.y, this.currTurn.moveType.axis.z) !== 0) this.currTurn.speed *= -1;
+
+            // check if the current turn is a prime turn or not (is it counter-clockwise), and invert turn speed if it is
+            if (!this.currTurn.prime) this.currTurn.speed *= -1;
             
             // set the turn limit to the axis limits for the type of turn, multiplied by the count of how many times this move should be performed
             this.turnLimit = new XYZ(
-                this.currTurn.moveType.axis.x * this.currTurn.count, 
-                this.currTurn.moveType.axis.y * this.currTurn.count, 
-                this.currTurn.moveType.axis.z * this.currTurn.count
+                this.currTurn.moveType.axis.x * this.currTurn.speed / Math.abs(this.currTurn.speed),
+                this.currTurn.moveType.axis.y * this.currTurn.speed / Math.abs(this.currTurn.speed),
+                this.currTurn.moveType.axis.z * this.currTurn.speed / Math.abs(this.currTurn.speed)
             );
 
             // reset the turn data variable
@@ -217,7 +245,7 @@ export class Cube {
             this.turnData.z = (Math.abs(this.turnData.z + this.currTurn.speed) > Math.abs(this.turnLimit.z)) ? this.turnLimit.z : this.turnData.z + this.currTurn.speed;
 
             // set the rotation of the origin piece to the current rotation values
-            this.origin.rotation.set(this.turnData.x, this.turnData.y, this.turnData.z);
+            this.rotationGroup.rotation.set(this.turnData.x, this.turnData.y, this.turnData.z);
 
             // check if all rotation factors have reached their maximum value
             if (this.turnData.x === this.turnLimit.x && this.turnData.y === this.turnLimit.y && this.turnData.z === this.turnLimit.z) {
@@ -225,12 +253,11 @@ export class Cube {
                 // update variable to show that the turn is no longer active
                 this.turnActive = false;
 
-                // add pieces attached to the origin piece back to the main scene
-                // for (let piece of [...this.origin.children]) this.scene.add(piece);
-                for (let piece of this.origin.children) scene.add(piece);
+                // add pieces in the rotation group back to the main scene
+                for (let piece of [...this.rotationGroup.children]) this.scene.add(piece);
 
-                // clear children attached to the origin piece
-                this.origin.clear();
+                // properly move the pieces around in both memory and visually after the turn is completed
+                for (let i = 0; i < this.currTurn.count; i++) this.permuteTiles(this.currTurn);
             }
         }
     }
@@ -272,9 +299,7 @@ export class Cube {
         const B: THREE.Group = constructCenter(blue);
         const D: THREE.Group = constructCenter(yellow);
 
-        this.origin = constructOrigin();
-
-        this.scene.add(AQ, BM, CI, DE, LF, JP, RH, TN, UK, VO, WS, ShG, AER, BNQ, CJM, DFI, ULG, VPK, WTO, ShHS, U, L, F, R, B, D, this.origin);
+        this.scene.add(AQ, BM, CI, DE, LF, JP, RH, TN, UK, VO, WS, ShG, AER, BNQ, CJM, DFI, ULG, VPK, WTO, ShHS, U, L, F, R, B, D);
 
         this.position = {
 
@@ -350,62 +375,75 @@ export class Cube {
 
     public applyMove(cubeMove: CubeMove) {
 
-        let moveData: MoveDataType = [];
-
-        switch (cubeMove.moveType.move) {
-
-            case MoveNotation.U: moveData = (cubeMove.prime) ? prime(MoveData.U) : MoveData.U; break;
-            case MoveNotation.L: moveData = (cubeMove.prime) ? prime(MoveData.L) : MoveData.L; break;
-            case MoveNotation.F: moveData = (cubeMove.prime) ? prime(MoveData.F) : MoveData.F; break;
-            case MoveNotation.R: moveData = (cubeMove.prime) ? prime(MoveData.R) : MoveData.R; break;
-            case MoveNotation.B: moveData = (cubeMove.prime) ? prime(MoveData.B) : MoveData.B; break;
-            case MoveNotation.D: moveData = (cubeMove.prime) ? prime(MoveData.D) : MoveData.D; break;
-
-            case MoveNotation.u: moveData = (cubeMove.prime) ? prime(MoveData.u) : MoveData.u; break;
-            case MoveNotation.l: moveData = (cubeMove.prime) ? prime(MoveData.l) : MoveData.l; break;
-            case MoveNotation.f: moveData = (cubeMove.prime) ? prime(MoveData.f) : MoveData.f; break;
-            case MoveNotation.r: moveData = (cubeMove.prime) ? prime(MoveData.r) : MoveData.r; break;
-            case MoveNotation.b: moveData = (cubeMove.prime) ? prime(MoveData.b) : MoveData.b; break;
-            case MoveNotation.d: moveData = (cubeMove.prime) ? prime(MoveData.d) : MoveData.d; break;
-
-            case MoveNotation.x: moveData = (cubeMove.prime) ? prime(MoveData.x) : MoveData.x; break;
-            case MoveNotation.y: moveData = (cubeMove.prime) ? prime(MoveData.y) : MoveData.y; break;
-            case MoveNotation.z: moveData = (cubeMove.prime) ? prime(MoveData.z) : MoveData.z; break;
-
-            case MoveNotation.M: moveData = (cubeMove.prime) ? prime(MoveData.M) : MoveData.M; break;
-            case MoveNotation.E: moveData = (cubeMove.prime) ? prime(MoveData.E) : MoveData.E; break;
-            case MoveNotation.S: moveData = (cubeMove.prime) ? prime(MoveData.S) : MoveData.S; break;
-        }
+        cubeMove.moveType.move = (cubeMove.prime) ? prime(cubeMove.moveType.move) : cubeMove.moveType.move;
 
         let piecesToMove: Set<THREE.Group> = new Set();
 
-        for (let group of moveData) {
+        for (let group of cubeMove.moveType.move) {
             for (let item of group) {
-                piecesToMove.add(this.position[item].piece);
+                piecesToMove.add(this.position[item[0]].piece);
             }
         }
 
-        for (let piece of [...piecesToMove]) this.origin.attach(piece);
+        this.rotationGroup = new THREE.Group();
+        this.scene.add(this.rotationGroup);
 
-        for (let i = 0; i < cubeMove.count; i++) this.permuteTiles(moveData);
+        for (let piece of [...piecesToMove]) this.rotationGroup.add(piece);
     }
 
 
 
-    protected permuteTiles(moveData: MoveDataType) {
+    protected permuteTiles(cubeMove: CubeMove) {
 
-        for (let moveGroup of moveData) {
+        for (let moveGroup of cubeMove.moveType.move) {
 
-            let buffer: CubeTile = this.position[moveGroup[0]];
-            let prev: CornerTile | EdgeTile | CenterTile = moveGroup[0];
+            let buffer: CubeTile[] = [];
+            let prev: (CornerTile | EdgeTile | CenterTile)[] = [];
+
+            for (let ref of moveGroup[0]) {
+                buffer.push(this.position[ref]);
+                prev.push(ref);
+            }
+
+            let coordBuffer: XYZ = new XYZ(buffer[0].piece.position.x, buffer[0].piece.position.y, buffer[0].piece.position.z);
+
+            // create variable to allow individual pieces to properly follow the correct rotation direction of a turn
+            let dir: number = 1;
+            // if (Math.max(this.currTurn.moveType.axis.x, this.currTurn.moveType.axis.y, this.currTurn.moveType.axis.z) !== 0) dir = -1;
+
+            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1) * dir, 0, 0), cubeMove.moveType.axis.x);
+            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1) * dir, 0), cubeMove.moveType.axis.y);
+            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1) * dir), cubeMove.moveType.axis.z);
 
             for (let i = 1; i < moveGroup.length; i++) {
 
-                this.position[prev] = this.position[moveGroup[i]];
-                this.position[moveGroup[i]] = buffer;
+                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1) * dir, 0, 0), cubeMove.moveType.axis.x);
+                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1) * dir, 0), cubeMove.moveType.axis.y);
+                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1) * dir), cubeMove.moveType.axis.z);
 
-                buffer = this.position[prev];
-                prev = moveGroup[i];
+                for (let j = 0; j < moveGroup[i].length; j++) {
+                    this.position[prev[j]] = this.position[moveGroup[i][j]];
+                    this.position[moveGroup[i][j]] = buffer[j];
+                } 
+
+                this.position[moveGroup[i][0]].piece.position.set(
+                    this.position[prev[0]].piece.position.x, 
+                    this.position[prev[0]].piece.position.y, 
+                    this.position[prev[0]].piece.position.z
+                );
+
+                this.position[prev[0]].piece.position.set(coordBuffer.x, coordBuffer.y, coordBuffer.z);
+
+                coordBuffer = new XYZ(
+                    this.position[moveGroup[i][0]].piece.position.x, 
+                    this.position[moveGroup[i][0]].piece.position.y, 
+                    this.position[moveGroup[i][0]].piece.position.z
+                );
+
+                for (let j = 0; j < moveGroup[i].length; j++) {
+                    prev[j] = moveGroup[i][j];
+                    buffer[j] = this.position[prev[j]];
+                }
             }
         }
     }
@@ -413,17 +451,15 @@ export class Cube {
 
 
 
-
 function main() {
 
     let test: Cube = new Cube();
 
-    test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: false, speed: 0.02});
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.02});
-    // test.moveQueue.enqueue({moveType: Move.R, count: 1, prime: true,  speed: 0.02});
-    // test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: true,  speed: 0.02});
+    test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.01});
 
+    test.moveQueue.enqueue({moveType: Move.wait, count: 100, prime: false, speed: 1});
 
+    test.moveQueue.enqueue({moveType: Move.U, count: 1, prime: false, speed: 0.01});
 }
 
 main();

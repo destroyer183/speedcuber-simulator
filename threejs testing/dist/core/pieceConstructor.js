@@ -240,9 +240,7 @@ export function constructCorner(upColor, frontColor, rightColor, innerColor = gr
     group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y + rightColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z + rightColor.coordinateOffset.z);
     // rotate cube into correct orientation
-    group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
-    group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
-    group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
+    group.rotation.set(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x, upColor.upRotationOffset.y + frontColor.frontRotationOffset.y, upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
     // return the group containing all four pieces of the corner piece
     return group;
 }
@@ -354,9 +352,7 @@ export function constructEdge(upColor, frontColor, innerColor = gray) {
     group.translateY(upColor.coordinateOffset.y + frontColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z + frontColor.coordinateOffset.z);
     // rotate cube into correct orientation
-    group.rotateX(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x);
-    group.rotateY(upColor.upRotationOffset.y + frontColor.frontRotationOffset.y);
-    group.rotateZ(upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
+    group.rotation.set(upColor.upRotationOffset.x + frontColor.frontRotationOffset.x, upColor.upRotationOffset.y + frontColor.frontRotationOffset.y, upColor.upRotationOffset.z + frontColor.frontRotationOffset.z);
     // return the main group
     return group;
 }
@@ -473,9 +469,7 @@ export function constructCenter(upColor, innerColor = gray) {
     group.translateY(upColor.coordinateOffset.y);
     group.translateZ(upColor.coordinateOffset.z);
     // rotate cube into correct orientation
-    group.rotateX(upColor.upRotationOffset.x);
-    group.rotateY(upColor.upRotationOffset.y);
-    group.rotateZ(upColor.upRotationOffset.z);
+    group.rotation.set(upColor.upRotationOffset.x, upColor.upRotationOffset.y, upColor.upRotationOffset.z);
     // return the main group
     return group;
 }

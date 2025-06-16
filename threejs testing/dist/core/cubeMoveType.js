@@ -1,26 +1,5 @@
 import { XYZ } from "./dataTypes";
-export var MoveNotation;
-(function (MoveNotation) {
-    MoveNotation["U"] = "UMove";
-    MoveNotation["L"] = "LMove";
-    MoveNotation["F"] = "FMove";
-    MoveNotation["R"] = "RMove";
-    MoveNotation["B"] = "BMove";
-    MoveNotation["D"] = "DMove";
-    MoveNotation["u"] = "uMove";
-    MoveNotation["l"] = "lMove";
-    MoveNotation["f"] = "fMove";
-    MoveNotation["r"] = "rMove";
-    MoveNotation["b"] = "bMove";
-    MoveNotation["d"] = "dMove";
-    MoveNotation["x"] = "xMove";
-    MoveNotation["y"] = "yMove";
-    MoveNotation["z"] = "zMove";
-    MoveNotation["M"] = "MMove";
-    MoveNotation["E"] = "EMove";
-    MoveNotation["S"] = "SMove";
-})(MoveNotation || (MoveNotation = {}));
-;
+import * as MoveNotation from "./cubeMoveData";
 const U = { move: MoveNotation.U, axis: new XYZ(0, -Math.PI / 2, 0) };
 const L = { move: MoveNotation.L, axis: new XYZ(Math.PI / 2, 0, 0) };
 const F = { move: MoveNotation.F, axis: new XYZ(0, 0, -Math.PI / 2) };
@@ -39,5 +18,6 @@ const z = { move: MoveNotation.z, axis: new XYZ(0, 0, -Math.PI / 2) };
 const M = { move: MoveNotation.M, axis: new XYZ(Math.PI / 2, 0, 0) };
 const E = { move: MoveNotation.E, axis: new XYZ(0, Math.PI / 2, 0) };
 const S = { move: MoveNotation.S, axis: new XYZ(0, 0, -Math.PI / 2) };
-export { U, L, F, R, B, D, u, l, f, r, b, d, x, y, z, M, E, S };
+const wait = { move: MoveNotation.wait, axis: new XYZ(0, 0, 0) };
+export { U, L, F, R, B, D, u, l, f, r, b, d, x, y, z, M, E, S, wait };
 //# sourceMappingURL=cubeMoveType.js.map

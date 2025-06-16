@@ -1,31 +1,8 @@
 import { XYZ } from "./dataTypes";
+import { MoveDataType } from "./dataTypes";
+import * as MoveNotation from "./cubeMoveData";
 
-
-export type MoveType = {move: MoveNotation, axis: XYZ};
-
-export enum MoveNotation {
-    U = "UMove",
-    L = "LMove",
-    F = "FMove",
-    R = "RMove",
-    B = "BMove",
-    D = "DMove",
-
-    u = "uMove",
-    l = "lMove",
-    f = "fMove",
-    r = "rMove",
-    b = "bMove",
-    d = "dMove",
-
-    x = "xMove",
-    y = "yMove",
-    z = "zMove",
-
-    M = "MMove",
-    E = "EMove",
-    S = "SMove"
-};
+export type MoveType = {move: MoveDataType, axis: XYZ};
 
 const U: MoveType = {move: MoveNotation.U, axis: new XYZ(0, -Math.PI/2, 0)};
 const L: MoveType = {move: MoveNotation.L, axis: new XYZ(Math.PI/2, 0,  0)};
@@ -49,4 +26,6 @@ const M: MoveType = {move: MoveNotation.M, axis: new XYZ(Math.PI/2, 0,  0)};
 const E: MoveType = {move: MoveNotation.E, axis: new XYZ(0, Math.PI/2,  0)};
 const S: MoveType = {move: MoveNotation.S, axis: new XYZ(0, 0, -Math.PI/2)};
 
-export { U, L, F, R, B, D, u, l, f, r, b, d, x, y, z, M, E, S };
+const wait: MoveType = {move: MoveNotation.wait, axis: new XYZ(0, 0, 0)};
+
+export { U, L, F, R, B, D, u, l, f, r, b, d, x, y, z, M, E, S, wait };

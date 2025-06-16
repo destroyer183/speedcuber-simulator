@@ -137,4 +137,4 @@ export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceTy
 
 export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};
 
-export type MoveDataType = (CornerTile[] | EdgeTile[] | CenterTile[])[];
+export type MoveDataType = (CornerTile[][] | EdgeTile[][] | CenterTile[][])[];
