@@ -133,7 +133,7 @@ export enum TileColor {
     Y = "yellow"
 };
 
-export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType};
+export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType, origin: CornerTile | EdgeTile | CenterTile};
 
 export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};
 
