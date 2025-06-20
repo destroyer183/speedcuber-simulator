@@ -1,8 +1,8 @@
 import { CornerTile, EdgeTile, CenterTile } from "./dataTypes";
 export function prime(move) {
     let temp = [];
-    move = structuredClone(move);
-    for (let group of [...move])
+    let moveData = structuredClone(move);
+    for (let group of [...moveData])
         temp.push(group.reverse());
     return temp;
 }

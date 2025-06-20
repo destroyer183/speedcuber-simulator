@@ -1,326 +1,302 @@
-import * as THREE from "three";
-import { TileColor, PieceType, XYZ } from "./dataTypes";
-import { white, orange, green, red, blue, yellow } from "./dataTypes";
-import { constructCorner, constructEdge, constructCenter } from "./pieceConstructor";
-import { prime } from "./cubeMoveData";
+import { Cube } from "./cube";
+import { CallbackData, SolveType } from "./dataTypes";
 import * as Move from "./cubeMoveType";
-// import { MoveNotation } from "./cubeMoveType";
-import { Queue } from "./queue";
-/** Singleton class to represent a 3x3 rubiks cube and all related functionality. */
-export class Cube {
-    /** @constructor main constructor for the 'Cube' class. */
+/** Singleton class to represent the user interface and its functionality, besides the cube. */
+export class UserInterface {
+    /** @constructor main constructor for the 'Interface' class. */
     constructor() {
-        /** protected queue to store every move that needs to be performed on the cube */
-        this._moveQueue = new Queue();
-        /** protected boolean to represent whether or not a turn is currently being performed on the cube. */
-        this._turnActive = false;
-        /** protected number to act as a counter for time where no turn is performed */
-        this._waitCounter = 0;
-        if (Cube.instance !== undefined)
+        /** protected variable to represent the current cube scramble */
+        this._scramble = [];
+        // check if the singleton instance already exists, and if it does, throw an error since there is only supposed to be one instance of this class
+        if (UserInterface._instance !== undefined)
             throw new Error("Error! can't create more than one instance of a singleton class!");
-        Cube._instance = this;
-        this.generateScene();
+        // set singleton instancd
+        UserInterface._instance = this;
+        // create new cube object and store it in a variable
+        this._cube = new Cube();
+        // call function to initialize the interface
+        this.initializeInterface();
+        // call function to initialize the cube in the interface
+        this.cube.generateScene();
+        // call function to link the cube to the solver
+        this.cube.linkSolver();
     }
     static get instance() {
-        return Cube._instance;
+        return this._instance;
     }
-    get position() {
-        return this._position;
+    get cube() {
+        return this._cube;
     }
-    get rotationGroup() {
-        return this._rotationGroup;
+    get scramble() {
+        return this._scramble;
     }
-    get moveQueue() {
-        return this._moveQueue;
+    set scramble(val) {
+        this._scramble = val;
     }
-    get currTurn() {
-        return this._currTurn;
+    /** function to initialize the user interface and bind buttons to their cooresponding functions */
+    initializeInterface() {
+        // set the cube's reference to the interface
+        this.cube.userInterface = UserInterface.instance;
+        // bind buttons to functions
+        document.getElementById("random-scramble").addEventListener("click", function () { UserInterface.instance.generateScramble(); });
+        document.getElementById("begin-scramble").addEventListener("click", function () { UserInterface.instance.beginScramble(); });
+        document.getElementById("begin-solve").addEventListener("click", function () { UserInterface.instance.beginSolve(); });
+        document.getElementById("reset-cube").addEventListener("click", function () { UserInterface.instance.resetCube(); });
     }
-    get turnLimit() {
-        return this._turnLimit;
-    }
-    get turnData() {
-        return this._turnData;
-    }
-    get turnActive() {
-        return this._turnActive;
-    }
-    get waitCounter() {
-        return this._waitCounter;
-    }
-    get scene() {
-        return this._scene;
-    }
-    set position(val) {
-        this._position = val;
-    }
-    set rotationGroup(val) {
-        this._rotationGroup = val;
-    }
-    set moveQueue(val) {
-        this._moveQueue = val;
-    }
-    set currTurn(val) {
-        this._currTurn = val;
-    }
-    set turnLimit(val) {
-        this._turnLimit = val;
-    }
-    set turnData(val) {
-        this._turnData = val;
-    }
-    set waitCounter(val) {
-        this._waitCounter = val;
-    }
-    set turnActive(val) {
-        this._turnActive = val;
-    }
-    /** Protected function to generate the threejs scene */
-    generateScene() {
-        // get window sizing
-        const WIDTH = window.innerWidth;
-        const HEIGHT = window.innerHeight;
-        // create the rendering element and add it to the html
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.domElement.setAttribute("id", "canvas-wrapper");
-        renderer.setSize(WIDTH, HEIGHT);
-        document.body.appendChild(renderer.domElement);
-        // set the background color of the renderer
-        renderer.setClearColor(0x696969);
-        // create rendering scene
-        this._scene = new THREE.Scene();
-        // create camera for the scene
-        const camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
-        // create variable to control the zoom factor
-        const zoom = 40;
-        // move the camera away from the origin in the Z direction
-        camera.translateZ(zoom);
-        // add the camera to the scene
-        this.scene.add(camera);
-        // call function to generate the 3x3 cube
-        this.generateCube();
-        // create function to orbit the camera around the cube, and bind it to trigger whenever the user moves their mouse
-        document.querySelector('#canvas-wrapper').addEventListener("mousemove", function (e) {
-            // get x and y coordinates of the mouse relative to the center of the screen, and scale the values down by a factor of 100
-            let x = (e.pageX - window.innerWidth / 2) * -0.01;
-            let y = (e.pageY - window.innerHeight / 2) * 0.01;
-            // limit the y value to be within pi/2 to prevent odd camera behaviour
-            if (y > Math.PI / 2)
-                y = Math.PI / 2;
-            if (y < -Math.PI / 2)
-                y = -Math.PI / 2;
-            // set camera position based on the x and y coordinates of the mouse
-            camera.position.x = Math.sin(x) * Math.cos(y) * zoom;
-            camera.position.y = Math.sin(y) * zoom;
-            camera.position.z = Math.cos(x) * Math.cos(y) * zoom;
-            // make camrea point at the origin
-            camera.lookAt(Cube.instance.scene.position);
-        }, false);
-        // create recursive function to render the scene
-        function render() {
-            // get next animation frame
-            requestAnimationFrame(render);
-            // call function to render the current state of the cube
-            Cube.instance.renderCube();
-            // render the scene
-            renderer.render(Cube.instance.scene, camera);
+    /**
+     * function that the cube will call when it is done performing an action
+     * @param callbackData the data that will tell this function what action has been completed
+     */
+    interfaceCallback(callbackData) {
+        console.log(this.cube.data);
+        // hide error message
+        document.getElementById("error-message").style.display = "none";
+        // check if the scramble has been applied to the cube
+        if (callbackData == CallbackData.ScrambleDone) {
+            // update which buttons are displayed
+            document.getElementById("random-scramble").style.display = "none";
+            document.getElementById("begin-scramble").style.display = "none";
+            document.getElementById("begin-solve").style.display = "initial";
+            document.getElementById("reset-cube").style.display = "initial";
         }
-        // call recursive function
-        render();
-    }
-    /** Protected function to render the cube and handle cube moves */
-    renderCube() {
-        // check if a wait is being performed
-        if (this.waitCounter != 0) {
-            // print stuff to the console to take up time
-            console.log("wait");
-            // incrament the wait counter, and apply modulus so that it will reset to 0 when it reaches the count
-            this.waitCounter = (this.waitCounter + this.currTurn.speed) % this.currTurn.count;
+        // check if the scramble has been undone
+        else if (callbackData == CallbackData.ScrambleUndone) {
+            // update which buttons are displayed
+            document.getElementById("random-scramble").style.display = "initial";
+            document.getElementById("begin-scramble").style.display = "initial";
+            document.getElementById("begin-solve").style.display = "initial";
+            document.getElementById("reset-cube").style.display = "none";
+            // show scramble input box and hide scramble output text
+            document.getElementById("scramble-input").style.display = "initial";
+            document.getElementById("scramble-output").style.display = "none";
         }
-        // check if a turn is currently being performed or if there are any turns currently in the queue
-        else if (!this.turnActive && this.moveQueue.size()) {
-            // get the next turn in the queue
-            this.currTurn = this.moveQueue.dequeue();
-            // check if there is no move data
-            if (this.currTurn.moveType.move.length === 0) {
-                // incrament the wait counter so that a different case will trigger on the next iteration of the loop
-                this.waitCounter += this.currTurn.speed;
-                // exit current loop iteration
+        // check if the solve has been completed
+        else if (callbackData == CallbackData.SolveDone) {
+            // update which buttons are displayed
+            document.getElementById("random-scramble").style.display = "initial";
+            document.getElementById("begin-scramble").style.display = "initial";
+            document.getElementById("begin-solve").style.display = "none";
+            document.getElementById("reset-cube").style.display = "none";
+            // show scramble input box and hide scramble output text
+            document.getElementById("scramble-input").style.display = "initial";
+            document.getElementById("scramble-output").style.display = "none";
+        }
+    }
+    /** public function to generate and apply a random scramble to the cube */
+    generateScramble() {
+        // hide all buttons
+        document.getElementById("random-scramble").style.display = "none";
+        document.getElementById("begin-scramble").style.display = "none";
+        document.getElementById("begin-solve").style.display = "none";
+        document.getElementById("reset-cube").style.display = "none";
+        // hide error message
+        document.getElementById("error-message").style.display = "none";
+        // create empty string to store the scramble data as a string to be displayed
+        let scrambleText = "";
+        // loop 20 times to generate 20 random moves
+        for (let i = 0; i < 20; i++) {
+            // generate base move
+            let move = { moveType: Move.U, count: 1, prime: false, speed: 0.2 };
+            // create array of all possible move directions for a scramble
+            const moveOptions = [Move.U, Move.L, Move.F, Move.R, Move.B, Move.D];
+            // select a random move from the possible moves
+            move.moveType = moveOptions[Math.floor(Math.random() * 6)];
+            // make the move count either one or two
+            move.count *= Math.ceil(Math.random() * 2);
+            // make the turn direction either prime or not, prevent turn from being prime if turn is a double move
+            move.prime = (Math.random() > 0.5 && move.count === 1) ? true : false;
+            // add the move to the scramble move array
+            this.scramble.push(move);
+            // switch case on the move type
+            switch (move.moveType) {
+                // U case, add string to scramble text and then exit switch case
+                case Move.U: {
+                    scrambleText += "U";
+                    break;
+                }
+                case Move.L: {
+                    scrambleText += "L";
+                    break;
+                }
+                case Move.F: {
+                    scrambleText += "F";
+                    break;
+                }
+                case Move.R: {
+                    scrambleText += "R";
+                    break;
+                }
+                case Move.B: {
+                    scrambleText += "B";
+                    break;
+                }
+                case Move.D: {
+                    scrambleText += "D";
+                    break;
+                }
+            }
+            // add an apostrophe to the scramble text if the move is prime
+            scrambleText += (move.prime) ? "'" : "";
+            // add a 2 to the scramble text if the move is a double move
+            scrambleText += (move.count == 2) ? "2" : "";
+            // add a space to the scramble text to separate each move
+            scrambleText += " ";
+        }
+        // hide scramble input
+        document.getElementById("scramble-input").style.display = "none";
+        // add scramble text to the scramble display
+        document.getElementById("scramble-output").innerHTML = scrambleText.trim();
+        document.getElementById("scramble-output").style.display = "initial";
+        // set return data for the cube
+        this.cube.returnData = CallbackData.ScrambleDone;
+        // add all moves to the cube's move queue
+        this.cube.moveQueue.enqueue(...this.scramble);
+    }
+    /** public function to verify and begin performing the inputted scramble. */
+    beginScramble() {
+        // get the scramble text, and trim off any leading or trailing whitespace
+        let scrambleText = document.getElementById("scramble-input").value.trim();
+        // convert the scramble text to an array
+        let scrambleData = scrambleText.split(" ");
+        // check if the scramble is long enough, and put error message on screen to show that the scramble is too short if it is less than 15 moves long
+        if (scrambleData.length < 15) {
+            document.getElementById("error-message").innerHTML = "Error: Scramble must be at least 15 moves long.";
+            document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
+            document.getElementById("error-message").style.display = "initial";
+        }
+        // loop over the inputted scramble data
+        for (let move of scrambleData) {
+            // generate base cube move
+            let cubeMove = { moveType: Move.U, count: 1, prime: false, speed: 0.2 };
+            // apply switch case on the first character of the inputted move
+            switch (move[0]) {
+                // U case, set move data for the cube move and exit the switch statement
+                case "U": {
+                    cubeMove.moveType = Move.U;
+                    break;
+                }
+                case "L": {
+                    cubeMove.moveType = Move.L;
+                    break;
+                }
+                case "F": {
+                    cubeMove.moveType = Move.F;
+                    break;
+                }
+                case "R": {
+                    cubeMove.moveType = Move.R;
+                    break;
+                }
+                case "B": {
+                    cubeMove.moveType = Move.B;
+                    break;
+                }
+                case "D": {
+                    cubeMove.moveType = Move.D;
+                    break;
+                }
+                // default case if no other case triggers
+                // this only happens if the inputted move is invalid
+                default: {
+                    // put error message on screen to show that the scramble text is invalid
+                    document.getElementById("error-message").innerHTML = "Error: Scramble contains invalid moves.";
+                    document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
+                    document.getElementById("error-message").style.display = "initial";
+                    // exit this entire function
+                    return;
+                }
+            }
+            // check if move data is longer than one character
+            if (move.length == 2) {
+                // apply switch case on the second character of the move data
+                switch (move[1]) {
+                    // prime case, set move direction to prime and exit switch statement
+                    case "'": {
+                        cubeMove.prime = true;
+                        break;
+                    }
+                    // double case, set move count to two and exit switch statement
+                    case "2": {
+                        cubeMove.count = 2;
+                        break;
+                    }
+                    // default case if no other case triggers
+                    // this will only trigger if there is an invalid character in the move data string
+                    default: {
+                        // put error message on screen to show that the scramble text is invalid
+                        document.getElementById("error-message").innerHTML = "Error: Scramble contains invalid move data.";
+                        document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
+                        document.getElementById("error-message").style.display = "initial";
+                        // exit this entire function
+                        return;
+                    }
+                }
+            }
+            // check if the move data is longer than two characters, this means there is an invalid move
+            else if (move[0].length > 2) {
+                // put error message on screen to show that the scramble text is invalid
+                document.getElementById("error-message").innerHTML = "Error: Scramble contains invalid move data.";
+                document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
+                document.getElementById("error-message").style.display = "initial";
+                // exit this entire function
                 return;
             }
-            // update variable to show that a turn is currently being performed
-            this.turnActive = true;
-            // call function to properly apply the current move to the cube's variable data
-            this.applyMove(this.currTurn);
-            // adjust speed attribute to follow the proper direction if the standard rotation direction is counter-clockwise relative to the world axis
-            if (Math.max(this.currTurn.moveType.axis.x, this.currTurn.moveType.axis.y, this.currTurn.moveType.axis.z) !== 0)
-                this.currTurn.speed *= -1;
-            // check if the current turn is a prime turn or not (is it counter-clockwise), and invert turn speed if it is
-            if (!this.currTurn.prime)
-                this.currTurn.speed *= -1;
-            // set the turn limit to the axis limits for the type of turn, multiplied by the count of how many times this move should be performed
-            this.turnLimit = new XYZ(this.currTurn.moveType.axis.x * this.currTurn.speed / Math.abs(this.currTurn.speed), this.currTurn.moveType.axis.y * this.currTurn.speed / Math.abs(this.currTurn.speed), this.currTurn.moveType.axis.z * this.currTurn.speed / Math.abs(this.currTurn.speed));
-            // reset the turn data variable
-            this.turnData = new XYZ(0, 0, 0);
+            // add move to scramble
+            this.scramble.push(cubeMove);
         }
-        // check if a turn is currently active
-        else if (this.turnActive) {
-            // add the speed values to turn data, stopping the rotation when the values have reached the maximum allowed rotation.
-            this.turnData.x = (Math.abs(this.turnData.x + this.currTurn.speed) > Math.abs(this.turnLimit.x)) ? this.turnLimit.x : this.turnData.x + this.currTurn.speed;
-            this.turnData.y = (Math.abs(this.turnData.y + this.currTurn.speed) > Math.abs(this.turnLimit.y)) ? this.turnLimit.y : this.turnData.y + this.currTurn.speed;
-            this.turnData.z = (Math.abs(this.turnData.z + this.currTurn.speed) > Math.abs(this.turnLimit.z)) ? this.turnLimit.z : this.turnData.z + this.currTurn.speed;
-            // set the rotation of the origin piece to the current rotation values
-            this.rotationGroup.rotation.set(this.turnData.x, this.turnData.y, this.turnData.z);
-            // check if all rotation factors have reached their maximum value
-            if (this.turnData.x === this.turnLimit.x && this.turnData.y === this.turnLimit.y && this.turnData.z === this.turnLimit.z) {
-                // update variable to show that the turn is no longer active
-                this.turnActive = false;
-                // add pieces in the rotation group back to the main scene
-                for (let piece of [...this.rotationGroup.children])
-                    this.scene.add(piece);
-                // properly move the pieces around in both memory and visually after the turn is completed
-                for (let i = 0; i < this.currTurn.count; i++)
-                    this.permuteTiles(this.currTurn);
-            }
-        }
+        // hide all buttons
+        document.getElementById("random-scramble").style.display = "none";
+        document.getElementById("begin-scramble").style.display = "none";
+        document.getElementById("begin-solve").style.display = "none";
+        document.getElementById("reset-cube").style.display = "none";
+        // hide error message
+        document.getElementById("error-message").style.display = "none";
+        // hide scramble input
+        document.getElementById("scramble-input").style.display = "none";
+        // add scramble text to the scramble display
+        document.getElementById("scramble-output").innerHTML = scrambleText.trim();
+        document.getElementById("scramble-output").style.display = "initial";
+        // set return data for the cube
+        this.cube.returnData = CallbackData.ScrambleDone;
+        // add all moves to the cube's move queue
+        this.cube.moveQueue.enqueue(...this.scramble);
     }
-    generateCube() {
-        const AER = constructCorner(white, blue, orange);
-        const BNQ = constructCorner(white, red, blue);
-        const CJM = constructCorner(white, green, red);
-        const DFI = constructCorner(white, orange, green);
-        const ULG = constructCorner(yellow, green, orange);
-        const VPK = constructCorner(yellow, red, green);
-        const WTO = constructCorner(yellow, blue, red);
-        const ShHS = constructCorner(yellow, orange, blue);
-        const AQ = constructEdge(white, blue);
-        const BM = constructEdge(white, red);
-        const CI = constructEdge(white, green);
-        const DE = constructEdge(white, orange);
-        const LF = constructEdge(green, orange);
-        const JP = constructEdge(green, red);
-        const RH = constructEdge(blue, orange);
-        const TN = constructEdge(blue, red);
-        const UK = constructEdge(yellow, green);
-        const VO = constructEdge(yellow, red);
-        const WS = constructEdge(yellow, blue);
-        const ShG = constructEdge(yellow, orange);
-        const U = constructCenter(white);
-        const L = constructCenter(orange);
-        const F = constructCenter(green);
-        const R = constructCenter(red);
-        const B = constructCenter(blue);
-        const D = constructCenter(yellow);
-        this.scene.add(AQ, BM, CI, DE, LF, JP, RH, TN, UK, VO, WS, ShG, AER, BNQ, CJM, DFI, ULG, VPK, WTO, ShHS, U, L, F, R, B, D);
-        this.position = {
-            "a": { color: TileColor.W, piece: AER, pieceType: PieceType.Corner },
-            "b": { color: TileColor.W, piece: BNQ, pieceType: PieceType.Corner },
-            "c": { color: TileColor.W, piece: CJM, pieceType: PieceType.Corner },
-            "d": { color: TileColor.W, piece: DFI, pieceType: PieceType.Corner },
-            "e": { color: TileColor.O, piece: AER, pieceType: PieceType.Corner },
-            "f": { color: TileColor.O, piece: DFI, pieceType: PieceType.Corner },
-            "g": { color: TileColor.O, piece: ULG, pieceType: PieceType.Corner },
-            "h": { color: TileColor.O, piece: ShHS, pieceType: PieceType.Corner },
-            "i": { color: TileColor.G, piece: DFI, pieceType: PieceType.Corner },
-            "j": { color: TileColor.G, piece: CJM, pieceType: PieceType.Corner },
-            "k": { color: TileColor.G, piece: VPK, pieceType: PieceType.Corner },
-            "l": { color: TileColor.G, piece: ULG, pieceType: PieceType.Corner },
-            "m": { color: TileColor.R, piece: CJM, pieceType: PieceType.Corner },
-            "n": { color: TileColor.R, piece: BNQ, pieceType: PieceType.Corner },
-            "o": { color: TileColor.R, piece: WTO, pieceType: PieceType.Corner },
-            "p": { color: TileColor.R, piece: VPK, pieceType: PieceType.Corner },
-            "q": { color: TileColor.B, piece: BNQ, pieceType: PieceType.Corner },
-            "r": { color: TileColor.B, piece: AER, pieceType: PieceType.Corner },
-            "s": { color: TileColor.B, piece: ShHS, pieceType: PieceType.Corner },
-            "t": { color: TileColor.B, piece: WTO, pieceType: PieceType.Corner },
-            "u": { color: TileColor.Y, piece: ULG, pieceType: PieceType.Corner },
-            "v": { color: TileColor.Y, piece: VPK, pieceType: PieceType.Corner },
-            "w": { color: TileColor.Y, piece: WTO, pieceType: PieceType.Corner },
-            "sh": { color: TileColor.Y, piece: ShHS, pieceType: PieceType.Corner },
-            "A": { color: TileColor.W, piece: AQ, pieceType: PieceType.Edge },
-            "B": { color: TileColor.W, piece: BM, pieceType: PieceType.Edge },
-            "C": { color: TileColor.W, piece: CI, pieceType: PieceType.Edge },
-            "D": { color: TileColor.W, piece: DE, pieceType: PieceType.Edge },
-            "E": { color: TileColor.O, piece: DE, pieceType: PieceType.Edge },
-            "F": { color: TileColor.O, piece: LF, pieceType: PieceType.Edge },
-            "G": { color: TileColor.O, piece: ShG, pieceType: PieceType.Edge },
-            "H": { color: TileColor.O, piece: RH, pieceType: PieceType.Edge },
-            "I": { color: TileColor.G, piece: CI, pieceType: PieceType.Edge },
-            "J": { color: TileColor.G, piece: JP, pieceType: PieceType.Edge },
-            "K": { color: TileColor.G, piece: UK, pieceType: PieceType.Edge },
-            "L": { color: TileColor.G, piece: LF, pieceType: PieceType.Edge },
-            "M": { color: TileColor.R, piece: BM, pieceType: PieceType.Edge },
-            "N": { color: TileColor.R, piece: TN, pieceType: PieceType.Edge },
-            "O": { color: TileColor.R, piece: VO, pieceType: PieceType.Edge },
-            "P": { color: TileColor.R, piece: JP, pieceType: PieceType.Edge },
-            "Q": { color: TileColor.B, piece: AQ, pieceType: PieceType.Edge },
-            "R": { color: TileColor.B, piece: RH, pieceType: PieceType.Edge },
-            "S": { color: TileColor.B, piece: WS, pieceType: PieceType.Edge },
-            "T": { color: TileColor.B, piece: TN, pieceType: PieceType.Edge },
-            "U": { color: TileColor.Y, piece: UK, pieceType: PieceType.Edge },
-            "V": { color: TileColor.Y, piece: VO, pieceType: PieceType.Edge },
-            "W": { color: TileColor.Y, piece: WS, pieceType: PieceType.Edge },
-            "SH": { color: TileColor.Y, piece: ShG, pieceType: PieceType.Edge },
-            "up": { color: TileColor.W, piece: U, pieceType: PieceType.Center },
-            "left": { color: TileColor.O, piece: L, pieceType: PieceType.Center },
-            "front": { color: TileColor.G, piece: F, pieceType: PieceType.Center },
-            "right": { color: TileColor.R, piece: R, pieceType: PieceType.Center },
-            "back": { color: TileColor.B, piece: B, pieceType: PieceType.Center },
-            "down": { color: TileColor.Y, piece: D, pieceType: PieceType.Center }
-        };
+    /** public function to begin solving the cube at beginner difficulty */
+    beginSolve() {
+        // hide all buttons
+        document.getElementById("random-scramble").style.display = "none";
+        document.getElementById("begin-scramble").style.display = "none";
+        document.getElementById("begin-solve").style.display = "none";
+        document.getElementById("reset-cube").style.display = "none";
+        // set return data for the cube
+        this.cube.returnData = CallbackData.SolveDone;
+        // call function on cube to begin the solve
+        this.cube.solve(SolveType.Beginner, this.scramble);
     }
-    applyMove(cubeMove) {
-        cubeMove.moveType.move = (cubeMove.prime) ? prime(cubeMove.moveType.move) : cubeMove.moveType.move;
-        let piecesToMove = new Set();
-        for (let group of cubeMove.moveType.move) {
-            for (let item of group) {
-                piecesToMove.add(this.position[item[0]].piece);
-            }
-        }
-        this.rotationGroup = new THREE.Group();
-        this.scene.add(this.rotationGroup);
-        for (let piece of [...piecesToMove])
-            this.rotationGroup.add(piece);
-    }
-    permuteTiles(cubeMove) {
-        for (let moveGroup of cubeMove.moveType.move) {
-            let buffer = [];
-            let prev = [];
-            for (let ref of moveGroup[0]) {
-                buffer.push(this.position[ref]);
-                prev.push(ref);
-            }
-            let coordBuffer = new XYZ(buffer[0].piece.position.x, buffer[0].piece.position.y, buffer[0].piece.position.z);
-            // create variable to allow individual pieces to properly follow the correct rotation direction of a turn
-            let dir = 1;
-            // if (Math.max(this.currTurn.moveType.axis.x, this.currTurn.moveType.axis.y, this.currTurn.moveType.axis.z) !== 0) dir = -1;
-            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1) * dir, 0, 0), cubeMove.moveType.axis.x);
-            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1) * dir, 0), cubeMove.moveType.axis.y);
-            buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1) * dir), cubeMove.moveType.axis.z);
-            for (let i = 1; i < moveGroup.length; i++) {
-                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1) * dir, 0, 0), cubeMove.moveType.axis.x);
-                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1) * dir, 0), cubeMove.moveType.axis.y);
-                this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1) * dir), cubeMove.moveType.axis.z);
-                for (let j = 0; j < moveGroup[i].length; j++) {
-                    this.position[prev[j]] = this.position[moveGroup[i][j]];
-                    this.position[moveGroup[i][j]] = buffer[j];
-                }
-                this.position[moveGroup[i][0]].piece.position.set(this.position[prev[0]].piece.position.x, this.position[prev[0]].piece.position.y, this.position[prev[0]].piece.position.z);
-                this.position[prev[0]].piece.position.set(coordBuffer.x, coordBuffer.y, coordBuffer.z);
-                coordBuffer = new XYZ(this.position[moveGroup[i][0]].piece.position.x, this.position[moveGroup[i][0]].piece.position.y, this.position[moveGroup[i][0]].piece.position.z);
-                for (let j = 0; j < moveGroup[i].length; j++) {
-                    prev[j] = moveGroup[i][j];
-                    buffer[j] = this.position[prev[j]];
-                }
-            }
-        }
+    /** public function to reset the cube if a scramble has been applied */
+    resetCube() {
+        // hide all buttons
+        document.getElementById("random-scramble").style.display = "none";
+        document.getElementById("begin-scramble").style.display = "none";
+        document.getElementById("begin-solve").style.display = "none";
+        document.getElementById("reset-cube").style.display = "none";
+        // hide error message
+        document.getElementById("error-message").style.display = "none";
+        // reverse scramble move order
+        this.scramble.reverse();
+        // reverse scramble move direction
+        for (let move of this.scramble)
+            move.prime = !move.prime;
+        // set return data for the cube
+        this.cube.returnData = CallbackData.ScrambleUndone;
+        // send moves to the cube
+        this.cube.moveQueue.enqueue(...this.scramble);
+        // clear scramble data
+        this.scramble = [];
     }
 }
 function main() {
-    let test = new Cube();
-    test.moveQueue.enqueue({ moveType: Move.U, count: 1, prime: false, speed: 0.01 });
-    test.moveQueue.enqueue({ moveType: Move.wait, count: 100, prime: false, speed: 1 });
-    test.moveQueue.enqueue({ moveType: Move.U, count: 1, prime: false, speed: 0.01 });
+    let userInterface = new UserInterface();
 }
 main();
 //# sourceMappingURL=main.js.map

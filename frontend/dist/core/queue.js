@@ -15,14 +15,14 @@ export class Queue {
     }
     /**
      * Function to add to the queue.
-     * @param item the item to be added to the queue.
+     * @param item the items to be added to the queue.
      */
-    enqueue(item) {
+    enqueue(...item) {
         // check if the queue is at max capacity, and throw an error if it reaches max capacity
         if (this.size() === this.capacity)
             throw Error("Error! Queue has reached max capacity, you cannot add more items");
-        // add new item to the storage
-        this.storage.push(item);
+        // add new items to the storage
+        this.storage.push(...item);
     }
     /**
      * Function to remove next item from the queue.

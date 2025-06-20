@@ -9,7 +9,31 @@
     <body>
 
 
+        <!-- input box for scramble -->
 
+        <div class="input-group">
+            <span class="hidden-on-load" id="error-message">Error: Scramble contains invalid moves.</span>
+            <span class="input-prompt"><b>Scramble: </b><span class="hidden-on-load" id="scramble-output"></span></span>
+            <input type="text" class="input-box" id="scramble-input">
+        </div>
+
+        <!-- button to generate random scramble -->
+        <div class="btn-div">
+
+            <button class="btn grow" id="random-scramble">Random Scramble</button>
+        
+            <button class="btn grow" id="begin-scramble">Begin Scramble</button>
+
+            <button class="btn grow hidden-on-load" id="begin-solve">Begin Solve</button>
+
+            <button class="btn grow hidden-on-load" id="reset-cube">Reset Cube</button>
+        </div>
+
+
+        <!-- only display either the button to execute the scramble or the button to begin the solve, never both at the same time -->
+
+
+        <script type="module" src="dist/core/main.js"></script>
         <script type="module" src="dist/core/cube.js"></script>
         <script type="module" src="dist/core/pieceConstructor.js"></script>
         <script type="module" src="dist/core/dataTypes.js"></script>

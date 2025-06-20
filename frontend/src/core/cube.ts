@@ -1,21 +1,24 @@
 import * as THREE from "three";
-import { EdgeTile, CornerTile, CenterTile, TileColor, CubeTile, PieceType, CubeMove, XYZ } from "./dataTypes";
+import { EdgeTile, CornerTile, CenterTile, TileColor, CubeTile, PieceType, CubeMove, XYZ, MoveDataType, SolveType, CallbackData } from "./dataTypes";
 import { white, orange, green, red, blue, yellow} from "./dataTypes";
 import { constructCorner, constructEdge, constructCenter } from "./pieceConstructor";
 import { prime } from "./cubeMoveData";
 import * as Move from "./cubeMoveType";
 import { Queue } from "./queue";
+import * as PLL from "./PLLAlgs";
+import { Solver } from "./solver";
+import { UserInterface } from "./main";
 
 
 
-/** Singleton class to represent a 3x3 rubiks cube and all related functionality. */
+/** class to represent a 3x3 rubiks cube and all related functionality. */
 export class Cube {
     
-    /** static attribute to act as a reference to the singleton object. */
-    protected static _instance: Cube;
-
     /** protected record attribute to keep track of the color and parent piece of each tile on the cube. */
-    protected _position: Record<EdgeTile | CornerTile | CenterTile, CubeTile>;
+    protected _data: Record<EdgeTile | CornerTile | CenterTile, CubeTile>;
+
+    /** protected variable to act as a reference to the main interface */
+    protected _userInterface: UserInterface;
 
     /** protected 'Group' to act as different layers of the cube to allow for multiple pieces to rotate around an origin. */
     protected _rotationGroup: THREE.Group;
@@ -41,19 +44,19 @@ export class Cube {
     /** protected variable that represents the current threejs scene */
     protected _scene: THREE.Scene;
 
+    /** protected variable to act as a reference to the solver */
+    protected _solver: Solver;
+
+    /** protected variable to store the data that needs to be sent back to the interface when an action is completed */
+    public _returnData: CallbackData;
+
     /** @constructor main constructor for the 'Cube' class. */
-    public constructor() {
-        if (Cube.instance !== undefined) throw new Error("Error! can't create more than one instance of a singleton class!");
-        Cube._instance = this;
-    }
+    public constructor() {}
 
 
 
-    public static get instance(): Cube {
-        return Cube._instance;
-    }
-    public get position(): Record<EdgeTile | CornerTile | CenterTile, CubeTile> {
-        return this._position;
+    public get data(): Record<EdgeTile | CornerTile | CenterTile, CubeTile> {
+        return this._data;
     }
     protected get rotationGroup(): THREE.Group {
         return this._rotationGroup;
@@ -79,9 +82,18 @@ export class Cube {
     protected get scene(): THREE.Scene {
         return this._scene;
     }
+    protected get solver(): Solver {
+        return this._solver;
+    }
+    public get returnData(): CallbackData {
+        return this._returnData;
+    }
+    public get userInterface(): UserInterface {
+        return this._userInterface
+    }
 
-    protected set position(val: Record<CornerTile | EdgeTile | CenterTile, CubeTile>) {
-        this._position = val;
+    protected set data(val: Record<CornerTile | EdgeTile | CenterTile, CubeTile>) {
+        this._data = val;
     }
     protected set rotationGroup(val: THREE.Group) {
         this._rotationGroup = val;
@@ -103,6 +115,22 @@ export class Cube {
     }
     protected set turnActive(val: boolean) {
         this._turnActive = val;
+    }
+    protected set solver(val: Solver) {
+        this._solver = val;
+    }
+    public set returnData(val: CallbackData) {
+        this._returnData = val;
+    }
+    public set userInterface(val: UserInterface) {
+        this._userInterface = val;
+    }
+
+
+
+    /** public function to link a solver to the cube */
+    public linkSolver() {
+        this.solver = new Solver(this);
     }
 
 
@@ -130,7 +158,7 @@ export class Cube {
         const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT);
 
         // create variable to control the zoom factor
-        const zoom: number = 40
+        const zoom: number = 30
 
         // move the camera away from the origin in the Z direction
         camera.translateZ(zoom);
@@ -140,6 +168,9 @@ export class Cube {
         
         // call function to generate the 3x3 cube
         this.generateCube();
+
+        // make placeholder variable to avoid conflicting variable names
+        let temp: Cube = this;
 
         // create function to orbit the camera around the cube, and bind it to trigger whenever the user moves their mouse
         document.querySelector('#canvas-wrapper')!.addEventListener("mousemove", function(e: any) {
@@ -158,7 +189,7 @@ export class Cube {
             camera.position.z = Math.cos(x) * Math.cos(y) * zoom;
 
             // make camrea point at the origin
-            camera.lookAt(Cube.instance.scene.position);
+            camera.lookAt(temp.scene.position);
 
         }, false); 
 
@@ -169,10 +200,10 @@ export class Cube {
             requestAnimationFrame(render);
 
             // call function to render the current state of the cube
-            Cube.instance.renderCube();
+            temp.renderCube();
 
             // render the scene
-            renderer.render(Cube.instance.scene, camera);
+            renderer.render(temp.scene, camera);
         }
 
         // call recursive function
@@ -198,7 +229,7 @@ export class Cube {
         else if (!this.turnActive && this.moveQueue.size()) {
 
             // get the next turn in the queue
-            this.currTurn = <CubeMove>this.moveQueue.dequeue();
+            this.currTurn = <CubeMove>structuredClone(this.moveQueue.dequeue());
 
             // check if there is no move data
             if (this.currTurn.moveType.move.length === 0) {
@@ -254,7 +285,10 @@ export class Cube {
                 for (let piece of [...this.rotationGroup.children]) this.scene.add(piece);
 
                 // properly move the pieces around in both memory and visually after the turn is completed
-                for (let i = 0; i < this.currTurn.count; i++) this.permuteTiles(this.currTurn);
+                this.permuteTiles(true, this.currTurn);
+
+                // check if the move queue is empty, and send return data to the interface if it is
+                if (this.moveQueue.size() == 0) this.userInterface.interfaceCallback(this.returnData);
             }
         }
     }
@@ -262,7 +296,9 @@ export class Cube {
 
 
     /** function to generate the cube in memory and visually */
-    protected generateCube() {
+    public generateCube() {
+
+        // reset all class variables
         
         // create constants for all of the corner pieces
         const AER: THREE.Group = constructCorner(white, blue, orange);
@@ -305,7 +341,7 @@ export class Cube {
         if (this.scene !== undefined) this.scene.add(AQ, BM, CI, DE, LF, JP, RH, TN, UK, VO, WS, ShG, AER, BNQ, CJM, DFI, ULG, VPK, WTO, ShHS, U, L, F, R, B, D);
 
         // assign all pieces to the correct tiles in memory
-        this.position = {
+        this.data = {
 
             "a": {color: TileColor.W, piece: AER, pieceType: PieceType.Corner, origin: CornerTile.A},
             "b": {color: TileColor.W, piece: BNQ, pieceType: PieceType.Corner, origin: CornerTile.B},
@@ -379,6 +415,30 @@ export class Cube {
 
 
 
+    /**
+     * function to call the solver to solve the cube
+     * @param solveType the type of solve to be performed
+     * @param scramble an array of cube moves that produces a scramble
+     */
+    public solve(solveType: SolveType, scramble: CubeMove[]) {
+
+        // apply a switch case on 'solveType'
+        switch (solveType) {
+            
+            // beginner case
+            case SolveType.Beginner: {
+
+                // call function in solver to begin a beginer solve
+                this.solver.solveBeginner(scramble);
+
+                // exit switch statement
+                break;
+            }
+        }
+    }
+
+
+
     /** 
      * function to create a group of all pieces that will move based on the turn data passed in
      * @param cubeMove the cube move data to be performed
@@ -387,14 +447,14 @@ export class Cube {
 
 
         // create empty set to store all of the pieces that will be moved
-        let piecesToMove: Set<THREE.Group> = new Set();
+        let piecesToMove: Set<THREE.Group> = new Set<THREE.Group>();
 
         // loop over every subarray of cube tile move data
         for (let group of cubeMove.moveType.move) {
             // loop over every cube tile in the move data
             for (let item of group) {
                 // add the piece at the current tile to the set of pieces to move
-                piecesToMove.add(this.position[item[0]].piece);
+                piecesToMove.add(this.data[item[0]].piece);
             }
         }
 
@@ -410,87 +470,95 @@ export class Cube {
 
     /**
      * function to move around the pieces in both memory and visually 
-     * @param cubeMove the move to be performed
      * @param applyVisually optional parameter to tell the function whether or not to visually apply the move to the cube
+     * @param moves the moves to be performed
      */
-    protected permuteTiles(cubeMove: CubeMove, applyVisually: boolean = true) {
+    public permuteTiles(applyVisually: boolean, ...moves: CubeMove[]) {
 
-        // invert the move data if the move is supposed to be prime (counter-clockwise)
-        cubeMove.moveType.move = (cubeMove.prime) ? prime(cubeMove.moveType.move) : cubeMove.moveType.move;
+        // loop over all moves passed in
+        for (let cubeMove of moves) {
 
-        // loop over every array of pieces in the piece move data
-        for (let moveGroup of cubeMove.moveType.move) {
+            // invert the move data if the move is supposed to be prime (counter-clockwise) and store it in a variable
+            let moveData: MoveDataType = (cubeMove.prime) ? prime(cubeMove.moveType.move) : cubeMove.moveType.move;
 
-            // create variable for the current buffer piece
-            let buffer: CubeTile[] = [];
+            // repeat loop based on the count of the turn
+            for (let i = 0; i < cubeMove.count; i++) {
 
-            // create buffer for the memory references to the current buffer piece
-            let prev: (CornerTile | EdgeTile | CenterTile)[] = [];
+                // loop over every array of pieces in the piece move data
+                for (let moveGroup of moveData) {
 
-            // add loop over the first subarray of tile move data
-            for (let ref of moveGroup[0]) {
+                    // create variable for the current buffer piece
+                    let buffer: CubeTile[] = [];
 
-                // add data to the piece buffer
-                buffer.push(this.position[ref]);
+                    // create buffer for the memory references to the current buffer piece
+                    let prev: (CornerTile | EdgeTile | CenterTile)[] = [];
 
-                // add data to the piece reference buffer
-                prev.push(ref);
-            }
+                    // add loop over the first subarray of tile move data
+                    for (let ref of moveGroup[0]) {
 
-            // create variable to act as a buffer for the coordinates of the current piece
-            let coordBuffer: XYZ = new XYZ(buffer[0].piece.position.x, buffer[0].piece.position.y, buffer[0].piece.position.z);
+                        // add data to the piece buffer
+                        buffer.push(this.data[ref]);
 
-            // check if the move should be applied visually, and rotate buffer piece if so
-            if (applyVisually) {
-                buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1), 0, 0), cubeMove.moveType.axis.x);
-                buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1), 0), cubeMove.moveType.axis.y);
-                buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1)), cubeMove.moveType.axis.z);
-            }
+                        // add data to the piece reference buffer
+                        prev.push(ref);
+                    }
 
-            // loop over every piece in the current move data by index
-            for (let i = 1; i < moveGroup.length; i++) {
+                    // create variable to act as a buffer for the coordinates of the current piece
+                    let coordBuffer: XYZ = new XYZ(buffer[0].piece.position.x, buffer[0].piece.position.y, buffer[0].piece.position.z);
 
-                // check if the move should be applied visually, and rotate current piece if so
-                if (applyVisually) {
-                    this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1), 0, 0), cubeMove.moveType.axis.x);
-                    this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1), 0), cubeMove.moveType.axis.y);
-                    this.position[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1)), cubeMove.moveType.axis.z);
-                }
+                    // check if the move should be applied visually, and rotate buffer piece if so
+                    if (applyVisually) {
+                        buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1), 0, 0), cubeMove.moveType.axis.x);
+                        buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1), 0), cubeMove.moveType.axis.y);
+                        buffer[0].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1)), cubeMove.moveType.axis.z);
+                    }
 
-                // loop over very tile in the current piece move data
-                for (let j = 0; j < moveGroup[i].length; j++) {
-                    // swap buffer and current piece in memory
-                    this.position[prev[j]] = this.position[moveGroup[i][j]];
-                    this.position[moveGroup[i][j]] = buffer[j];
-                } 
+                    // loop over every piece in the current move data by index
+                    for (let i = 1; i < moveGroup.length; i++) {
 
-                // check if the move should be applied visually, and move current piece if so
-                if (applyVisually) {
-                    this.position[moveGroup[i][0]].piece.position.set(
-                        this.position[prev[0]].piece.position.x, 
-                        this.position[prev[0]].piece.position.y, 
-                        this.position[prev[0]].piece.position.z
-                    );
-                }
+                        // check if the move should be applied visually, and rotate current piece if so
+                        if (applyVisually) {
+                            this.data[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3((cubeMove.prime ? -1 : 1), 0, 0), cubeMove.moveType.axis.x);
+                            this.data[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, (cubeMove.prime ? -1 : 1), 0), cubeMove.moveType.axis.y);
+                            this.data[moveGroup[i][0]].piece.rotateOnWorldAxis(new THREE.Vector3(0, 0, (cubeMove.prime ? -1 : 1)), cubeMove.moveType.axis.z);
+                        }
 
-                // check if the move should be applied visually, and move buffer piece if so
-                this.position[prev[0]].piece.position.set(coordBuffer.x, coordBuffer.y, coordBuffer.z);
+                        // loop over very tile in the current piece move data
+                        for (let j = 0; j < moveGroup[i].length; j++) {
+                            // swap buffer and current piece in memory
+                            this.data[prev[j]] = this.data[moveGroup[i][j]];
+                            this.data[moveGroup[i][j]] = buffer[j];
+                        } 
 
-                // update coordinate buffer to be the current piece
-                coordBuffer = new XYZ(
-                    this.position[moveGroup[i][0]].piece.position.x, 
-                    this.position[moveGroup[i][0]].piece.position.y, 
-                    this.position[moveGroup[i][0]].piece.position.z
-                );
+                        // check if the move should be applied visually, and move current piece if so
+                        if (applyVisually) {
+                            this.data[moveGroup[i][0]].piece.position.set(
+                                this.data[prev[0]].piece.position.x, 
+                                this.data[prev[0]].piece.position.y, 
+                                this.data[prev[0]].piece.position.z
+                            );
+                        }
 
-                // loop over every tile in the current piece move data by index
-                for (let j = 0; j < moveGroup[i].length; j++) {
+                        // check if the move should be applied visually, and move buffer piece if so
+                        if (applyVisually) this.data[prev[0]].piece.position.set(coordBuffer.x, coordBuffer.y, coordBuffer.z);
 
-                    // update buffer reference data
-                    prev[j] = moveGroup[i][j];
-                    
-                    // update buffer piece data
-                    buffer[j] = this.position[prev[j]];
+                        // update coordinate buffer to be the current piece
+                        coordBuffer = new XYZ(
+                            this.data[moveGroup[i][0]].piece.position.x, 
+                            this.data[moveGroup[i][0]].piece.position.y, 
+                            this.data[moveGroup[i][0]].piece.position.z
+                        );
+
+                        // loop over every tile in the current piece move data by index
+                        for (let j = 0; j < moveGroup[i].length; j++) {
+
+                            // update buffer reference data
+                            prev[j] = moveGroup[i][j];
+                            
+                            // update buffer piece data
+                            buffer[j] = this.data[prev[j]];
+                        }
+                    }
                 }
             }
         }
@@ -503,13 +571,53 @@ function main() {
 
     let test: Cube = new Cube();
 
-    test.generateScene();
+    test.linkSolver();
 
-    test.moveQueue.enqueue({moveType: Move.U, count: 2, prime: false, speed: 0.01});
+
+
+    // test.moveQueue.enqueue({moveType: Move.U, count: 2, prime: false, speed: 0.02});
+
+    // test.moveQueue.enqueue({moveType: Move.wait, count: 100, prime: false, speed: 1});
+
+    let scramble: CubeMove[] = [
+
+        {moveType: Move.L, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.D, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
+        {moveType: Move.F, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.L, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.U, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.L, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.R, count: 1, prime: true, speed: 0.1},
+        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.D, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.D, count: 2, prime: false, speed: 0.1},
+        {moveType: Move.R, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.U, count: 1, prime: true, speed: 0.1},
+        {moveType: Move.F, count: 1, prime: true, speed: 0.1},
+        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
+        {moveType: Move.F, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.R, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.B, count: 1, prime: false, speed: 0.1},
+        {moveType: Move.R, count: 1, prime: true, speed: 0.1},
+    ];
+
+    scramble = [
+
+        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
+        ...PLL.T,
+        {moveType: Move.L, count: 1, prime: false, speed: 0.1},
+    ];
+
+    // test.moveQueue.enqueue(...scramble);
 
     test.moveQueue.enqueue({moveType: Move.wait, count: 100, prime: false, speed: 1});
 
-    test.moveQueue.enqueue({moveType: Move.U, count: 2, prime: false, speed: 0.01});
+
+
+    test.generateScene();
 }
 
-main();
+// main();

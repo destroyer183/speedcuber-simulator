@@ -118,4 +118,18 @@ export var TileColor;
     TileColor["Y"] = "yellow";
 })(TileColor || (TileColor = {}));
 ;
+export var SolveType;
+(function (SolveType) {
+    SolveType["Beginner"] = "beginner";
+    SolveType["Intermediate"] = "intermediate";
+    SolveType["Advanced"] = "advanced";
+})(SolveType || (SolveType = {}));
+;
+export var CallbackData;
+(function (CallbackData) {
+    CallbackData["ScrambleDone"] = "scrambleDone";
+    CallbackData["ScrambleUndone"] = "scrambleUndone";
+    CallbackData["SolveDone"] = "solveDone";
+})(CallbackData || (CallbackData = {}));
+;
 //# sourceMappingURL=dataTypes.js.map

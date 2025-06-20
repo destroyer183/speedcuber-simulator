@@ -6,15 +6,83 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;;
+    align-items: center;
 }
 
 #canvas-wrapper {
     position: relative;
+    z-index: 1;
     width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     color: black;
+}
+
+.input-group {
+    background-color: lightgray;
+    border: solid 0.1rem black;
+    border-radius: 1rem;
+    z-index: 2;
+    padding: 1.5rem 1rem;
+    font-size: 2rem;
+    margin: 1rem 0;
+    position: absolute;
+    bottom: 2rem;
+    margin: 0 auto;
+}
+
+.input-box {
+    background-color: dimgrey;
+    font-size: 2rem;
+    border: solid 0.1rem black;
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    color: lightgray;
+    width: 40rem;
+}
+
+#scramble-output {
+    font-size: 2rem;
+    color: black;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.8rem;
+    position: absolute;
+    top: -1rem;
+    /* calculate the left spacing for this based on the sizing of it's neighbour elements */
+}
+
+.btn-div {
+    position: absolute;
+    top: 2rem;
+    margin: 0 auto;
+    width: fit-content;
+    z-index: 2;
+}
+
+.btn {
+    font-size: 2rem;
+    margin: 0.5rem;
+    background-color: lightgray;
+    color: black;
+    padding: 1rem;
+    border: solid 0.1rem black;
+    border-radius: 1rem;
+}
+
+.hidden-on-load {
+    display: none;
+}
+
+.grow { 
+    cursor: pointer;
+    transition: all .2s ease-in-out; 
+}
+
+.grow:hover { 
+    transform: scale(1.1); 
 }

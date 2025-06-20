@@ -133,6 +133,18 @@ export enum TileColor {
     Y = "yellow"
 };
 
+export enum SolveType {
+    Beginner = "beginner",
+    Intermediate = "intermediate",
+    Advanced = "advanced"
+};
+
+export enum CallbackData {
+    ScrambleDone = "scrambleDone",
+    ScrambleUndone = "scrambleUndone",
+    SolveDone = "solveDone"
+};
+
 export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType, origin: CornerTile | EdgeTile | CenterTile};
 
 export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};
