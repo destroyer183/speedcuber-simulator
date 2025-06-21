@@ -3,7 +3,7 @@ import * as THREE from "three";
 const pieceSize = 5;
 const pieceGap = 0.05;
 const pieceOffset = pieceSize + pieceGap;
-// simple class to allow xyz data to be more easily understandable
+/** simple class to allow xyz data to be more easily understandable */
 export class XYZ {
     constructor(x, y, z) {
         this.x = x;
@@ -11,7 +11,7 @@ export class XYZ {
         this.z = z;
     }
 }
-// simple class to allow color variables to store more info for simpler rendering
+/** simple class to allow color variables to store more info for simpler rendering */
 export class ColorType {
     constructor(color, coordinateOffset, upRotationOffset, frontRotationOffset = new XYZ(0, 0, 0)) {
         this.color = color;
@@ -20,6 +20,7 @@ export class ColorType {
         this.frontRotationOffset = frontRotationOffset;
     }
 }
+// create constants for each type of color that will be used during rendering
 const colorWhite = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 const colorOrange = new THREE.MeshBasicMaterial({ color: 0xff5000, side: THREE.DoubleSide });
 const colorGreen = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
@@ -27,6 +28,7 @@ const colorRed = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.Doub
 const colorBlue = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
 const colorYellow = new THREE.MeshBasicMaterial({ color: 0xcfff04, side: THREE.DoubleSide });
 const colorGray = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+// create proper ColorType elements for each color to attach position and rotation data to each color
 const white = new ColorType(colorWhite, new XYZ(0, pieceOffset, 0), new XYZ(0, 0, 0));
 const orange = new ColorType(colorOrange, new XYZ(-pieceOffset, 0, 0), new XYZ(0, 0, Math.PI / 2), new XYZ(0, -Math.PI / 2, 0));
 const green = new ColorType(colorGreen, new XYZ(0, 0, pieceOffset), new XYZ(Math.PI / 2, 0, 0), new XYZ(0, 0, 0));
@@ -34,7 +36,9 @@ const red = new ColorType(colorRed, new XYZ(pieceOffset, 0, 0), new XYZ(0, 0, -M
 const blue = new ColorType(colorBlue, new XYZ(0, 0, -pieceOffset), new XYZ(-Math.PI / 2, 0, 0), new XYZ(0, Math.PI, 0));
 const yellow = new ColorType(colorYellow, new XYZ(0, -pieceOffset, 0), new XYZ(0, 0, Math.PI));
 const gray = new ColorType(colorGray, new XYZ(0, 0, 0), new XYZ(0, 0, 0));
+// export piece constants and color data
 export { pieceSize, pieceGap, pieceOffset, white, orange, green, red, blue, yellow, gray };
+// create enumeration for the letter references to all edge tiles
 export var EdgeTile;
 (function (EdgeTile) {
     EdgeTile["A"] = "A";
@@ -63,6 +67,7 @@ export var EdgeTile;
     EdgeTile["Sh"] = "SH";
 })(EdgeTile || (EdgeTile = {}));
 ;
+// create enumeration for the letter references to all corner tiles
 export var CornerTile;
 (function (CornerTile) {
     CornerTile["A"] = "a";
@@ -91,6 +96,7 @@ export var CornerTile;
     CornerTile["Sh"] = "sh";
 })(CornerTile || (CornerTile = {}));
 ;
+// create enumeration for the letter references to all corner tiles
 export var CenterTile;
 (function (CenterTile) {
     CenterTile["U"] = "up";
@@ -101,6 +107,7 @@ export var CenterTile;
     CenterTile["D"] = "down";
 })(CenterTile || (CenterTile = {}));
 ;
+// create enumeration for each type of piece
 export var PieceType;
 (function (PieceType) {
     PieceType["Corner"] = "corner";
@@ -108,6 +115,7 @@ export var PieceType;
     PieceType["Center"] = "center";
 })(PieceType || (PieceType = {}));
 ;
+// create enumeration for each color
 export var TileColor;
 (function (TileColor) {
     TileColor["W"] = "white";
@@ -118,6 +126,7 @@ export var TileColor;
     TileColor["Y"] = "yellow";
 })(TileColor || (TileColor = {}));
 ;
+// creat enumeration for each solve type
 export var SolveType;
 (function (SolveType) {
     SolveType["Beginner"] = "beginner";
@@ -125,6 +134,7 @@ export var SolveType;
     SolveType["Advanced"] = "advanced";
 })(SolveType || (SolveType = {}));
 ;
+// create enumeration for the different types of interface callback data
 export var CallbackData;
 (function (CallbackData) {
     CallbackData["ScrambleDone"] = "scrambleDone";

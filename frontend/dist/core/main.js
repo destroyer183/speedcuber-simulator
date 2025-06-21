@@ -10,7 +10,7 @@ export class UserInterface {
         // check if the singleton instance already exists, and if it does, throw an error since there is only supposed to be one instance of this class
         if (UserInterface._instance !== undefined)
             throw new Error("Error! can't create more than one instance of a singleton class!");
-        // set singleton instancd
+        // set singleton instance
         UserInterface._instance = this;
         // create new cube object and store it in a variable
         this._cube = new Cube();
@@ -64,7 +64,7 @@ export class UserInterface {
             // update which buttons are displayed
             document.getElementById("random-scramble").style.display = "initial";
             document.getElementById("begin-scramble").style.display = "initial";
-            document.getElementById("begin-solve").style.display = "initial";
+            document.getElementById("begin-solve").style.display = "none";
             document.getElementById("reset-cube").style.display = "none";
             // show scramble input box and hide scramble output text
             document.getElementById("scramble-input").style.display = "initial";
@@ -163,6 +163,8 @@ export class UserInterface {
             document.getElementById("error-message").innerHTML = "Error: Scramble must be at least 15 moves long.";
             document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
             document.getElementById("error-message").style.display = "initial";
+            // exit this entire function
+            return;
         }
         // loop over the inputted scramble data
         for (let move of scrambleData) {
@@ -201,7 +203,7 @@ export class UserInterface {
                     // put error message on screen to show that the scramble text is invalid
                     document.getElementById("error-message").innerHTML = "Error: Scramble contains invalid moves.";
                     document.getElementById("error-message").style.left = document.getElementById("scramble-input").offsetLeft + "px";
-                    document.getElementById("error-message").style.display = "initial";
+                    document.getElementById("error-message").style.display = "relative";
                     // exit this entire function
                     return;
                 }

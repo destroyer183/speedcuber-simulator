@@ -48,11 +48,11 @@ body {
     color: black;
 }
 
-.error-message {
+#error-message {
     color: red;
     font-size: 0.8rem;
     position: absolute;
-    top: -1rem;
+    top: 0.3rem;
     /* calculate the left spacing for this based on the sizing of it's neighbour elements */
 }
 

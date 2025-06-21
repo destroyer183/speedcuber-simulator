@@ -6,7 +6,7 @@ const pieceSize = 5;
 const pieceGap = 0.05;
 const pieceOffset = pieceSize + pieceGap;
 
-// simple class to allow xyz data to be more easily understandable
+/** simple class to allow xyz data to be more easily understandable */
 export class XYZ {
     constructor(
         public x: number,
@@ -15,7 +15,7 @@ export class XYZ {
     ) {}
 }
 
-// simple class to allow color variables to store more info for simpler rendering
+/** simple class to allow color variables to store more info for simpler rendering */
 export class ColorType {
     constructor(
         public color: THREE.MeshBasicMaterial,
@@ -25,7 +25,7 @@ export class ColorType {
     ) {}
 }
 
-
+// create constants for each type of color that will be used during rendering
 const colorWhite:  THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 const colorOrange: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0xff5000, side: THREE.DoubleSide })
 const colorGreen:  THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
@@ -34,6 +34,7 @@ const colorBlue:   THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color
 const colorYellow: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0xcfff04, side: THREE.DoubleSide })
 const colorGray:   THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
 
+// create proper ColorType elements for each color to attach position and rotation data to each color
 const white:  ColorType = new ColorType(colorWhite,  new XYZ(0, pieceOffset, 0),  new XYZ(0, 0, 0));
 const orange: ColorType = new ColorType(colorOrange, new XYZ(-pieceOffset, 0, 0), new XYZ(0, 0, Math.PI/2),  new XYZ(0, -Math.PI/2, 0));
 const green:  ColorType = new ColorType(colorGreen,  new XYZ(0, 0, pieceOffset),  new XYZ(Math.PI/2, 0, 0),  new XYZ(0, 0, 0));
@@ -42,9 +43,10 @@ const blue:   ColorType = new ColorType(colorBlue,   new XYZ(0, 0, -pieceOffset)
 const yellow: ColorType = new ColorType(colorYellow, new XYZ(0, -pieceOffset, 0), new XYZ(0, 0, Math.PI));
 const gray:   ColorType = new ColorType(colorGray,   new XYZ(0, 0, 0), new XYZ(0, 0, 0));
 
+// export piece constants and color data
 export { pieceSize, pieceGap, pieceOffset, white, orange, green, red, blue, yellow, gray };
 
-
+// create enumeration for the letter references to all edge tiles
 export enum EdgeTile {
     A = "A",
     B = "B",
@@ -77,6 +79,7 @@ export enum EdgeTile {
     Sh = "SH"
 };
 
+// create enumeration for the letter references to all corner tiles
 export enum CornerTile {
     A = "a",
     B = "b",
@@ -109,6 +112,7 @@ export enum CornerTile {
     Sh = "sh"
 };
 
+// create enumeration for the letter references to all corner tiles
 export enum CenterTile {
     U = "up",
     L = "left",
@@ -118,12 +122,14 @@ export enum CenterTile {
     D = "down"
 };
 
+// create enumeration for each type of piece
 export enum PieceType {
     Corner = "corner",
     Edge = "edge",
     Center = "center"
 };
 
+// create enumeration for each color
 export enum TileColor {
     W = "white",
     O = "orange",
@@ -133,20 +139,25 @@ export enum TileColor {
     Y = "yellow"
 };
 
+// creat enumeration for each solve type
 export enum SolveType {
     Beginner = "beginner",
     Intermediate = "intermediate",
     Advanced = "advanced"
 };
 
+// create enumeration for the different types of interface callback data
 export enum CallbackData {
     ScrambleDone = "scrambleDone",
     ScrambleUndone = "scrambleUndone",
     SolveDone = "solveDone"
 };
 
+// create type to condense piece data for the cube
 export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType, origin: CornerTile | EdgeTile | CenterTile};
 
+// create type to condense move data for different types of cube moves
 export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};
 
+// create type to shorten some lines of code for the tile move data because I'm lazy
 export type MoveDataType = (CornerTile[][] | EdgeTile[][] | CenterTile[][])[];

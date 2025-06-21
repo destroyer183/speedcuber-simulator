@@ -222,7 +222,7 @@ export class Cube {
             console.log("wait");
 
             // incrament the wait counter, and apply modulus so that it will reset to 0 when it reaches the count
-            this.waitCounter = (this.waitCounter + this.currTurn.speed) % this.currTurn.count;
+            this.waitCounter = (this.waitCounter + this.currTurn.speed) % (this.currTurn.count + 1);
         }
 
         // check if a turn is currently being performed or if there are any turns currently in the queue
@@ -430,9 +430,6 @@ export class Cube {
 
                 // call function in solver to begin a beginer solve
                 this.solver.solveBeginner(scramble);
-
-                // exit switch statement
-                break;
             }
         }
     }
@@ -564,60 +561,3 @@ export class Cube {
         }
     }
 }
-
-
-
-function main() {
-
-    let test: Cube = new Cube();
-
-    test.linkSolver();
-
-
-
-    // test.moveQueue.enqueue({moveType: Move.U, count: 2, prime: false, speed: 0.02});
-
-    // test.moveQueue.enqueue({moveType: Move.wait, count: 100, prime: false, speed: 1});
-
-    let scramble: CubeMove[] = [
-
-        {moveType: Move.L, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.D, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
-        {moveType: Move.F, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.L, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.U, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.L, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.R, count: 1, prime: true, speed: 0.1},
-        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.D, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.B, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.D, count: 2, prime: false, speed: 0.1},
-        {moveType: Move.R, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.U, count: 1, prime: true, speed: 0.1},
-        {moveType: Move.F, count: 1, prime: true, speed: 0.1},
-        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
-        {moveType: Move.F, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.R, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.B, count: 1, prime: false, speed: 0.1},
-        {moveType: Move.R, count: 1, prime: true, speed: 0.1},
-    ];
-
-    scramble = [
-
-        {moveType: Move.L, count: 1, prime: true, speed: 0.1},
-        ...PLL.T,
-        {moveType: Move.L, count: 1, prime: false, speed: 0.1},
-    ];
-
-    // test.moveQueue.enqueue(...scramble);
-
-    test.moveQueue.enqueue({moveType: Move.wait, count: 100, prime: false, speed: 1});
-
-
-
-    test.generateScene();
-}
-
-// main();

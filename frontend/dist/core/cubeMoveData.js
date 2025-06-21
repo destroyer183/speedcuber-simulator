@@ -1,11 +1,21 @@
 import { CornerTile, EdgeTile, CenterTile } from "./dataTypes";
+/**
+ * function to convert clockwise cuve turn data to counter-clockwise cube turn data
+ * @param move the tile move data to be reversed
+ * @returns the reversed tile move data
+ */
 export function prime(move) {
+    // create temporary array to store the reversed data
     let temp = [];
+    // create a deep copy of the inputted data to avoid changing constants
     let moveData = structuredClone(move);
+    // loop over the inputted data and reverse each subarray
     for (let group of [...moveData])
         temp.push(group.reverse());
+    // return the reversed data
     return temp;
 }
+// create constants that represent how all of the tiles on the cube move around when a given turn is performed
 const U = [
     [
         [CornerTile.D, CornerTile.F, CornerTile.I],
@@ -178,5 +188,6 @@ const d = [
     ...E
 ];
 const wait = [];
+// export all of the constants
 export { U, L, F, R, B, D, M, E, S, x, y, z, u, l, f, r, b, d, wait };
 //# sourceMappingURL=cubeMoveData.js.map
