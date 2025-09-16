@@ -76,10 +76,13 @@ export class Solver {
             // incrament edge swap counter
             edgeSwapCount++;
         }
-        // check if an odd number of edge swaps were performed, and perform the parity algorithm if so
+        // check if an odd number of edge swaps were performed
         if (edgeSwapCount % 2 !== 0) {
+            // send parity algorithm to both the main cube and the dummy cube to fix edge swap
             this.cube.moveQueue.enqueue(...PLL.Ra);
             this.dummyCube.permuteTiles(false, ...PLL.Ra);
+            // send a placeholder move to the main move queue to simulate a person thinking
+            this.cube.moveQueue.enqueue({ moveType: Move.wait, count: 50, prime: false, speed: 1 });
         }
         // keep solving corners until all corners are solved
         while (!this.cornersSolved()) {

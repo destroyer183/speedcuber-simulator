@@ -3,7 +3,15 @@ import { CallbackData, CubeMove, SolveType } from "./dataTypes";
 import * as Move from "./cubeMoveType";
 import { MoveType } from "./cubeMoveType";
 
+/*
 
+STARTUP:
+
+npx tsc -watch
+
+npx vite
+
+*/
 
 /** Singleton class to represent the user interface and its functionality, besides the cube. */
 export class UserInterface {

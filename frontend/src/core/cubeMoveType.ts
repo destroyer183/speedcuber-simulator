@@ -1,9 +1,7 @@
 import { CornerTile, CubeMove, EdgeTile, XYZ } from "./dataTypes";
-import { MoveDataType } from "./dataTypes";
+import { MoveType } from "./dataTypes";
 import * as MoveNotation from "./cubeMoveData";
 
-// create data type for move data, contains the tile movement data and the axis of rotation
-export type MoveType = {move: MoveDataType, axis: XYZ};
 
 // create constants for every type of move
 const U: MoveType = {move: MoveNotation.U, axis: new XYZ(0, -Math.PI/2, 0)};

@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { MoveType } from "./cubeMoveType";
 
 // cube piece sizing and spacing
 const pieceSize = 5;
@@ -155,6 +154,9 @@ export enum CallbackData {
 
 // create type to condense piece data for the cube
 export type CubeTile = {color: TileColor, piece: THREE.Group, pieceType: PieceType, origin: CornerTile | EdgeTile | CenterTile};
+
+// create data type for move data, contains the tile movement data and the axis of rotation
+export type MoveType = {move: MoveDataType, axis: XYZ};
 
 // create type to condense move data for different types of cube moves
 export type CubeMove = {moveType: MoveType, count: number, prime: boolean, speed: number};

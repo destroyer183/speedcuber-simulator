@@ -1,6 +1,15 @@
 import { Cube } from "./cube";
 import { CallbackData, SolveType } from "./dataTypes";
 import * as Move from "./cubeMoveType";
+/*
+
+STARTUP:
+
+npx tsc -watch
+
+npx vite
+
+*/
 /** Singleton class to represent the user interface and its functionality, besides the cube. */
 export class UserInterface {
     /** @constructor main constructor for the 'Interface' class. */
