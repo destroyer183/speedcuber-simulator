@@ -1,7 +1,6 @@
 import { Cube } from "./cube";
-import { CallbackData, CubeMove, SolveType } from "./dataTypes";
+import { CallbackData, CubeMove, SolveType, MoveType } from "./dataTypes";
 import * as Move from "./cubeMoveType";
-import { MoveType } from "./cubeMoveType";
 
 /*
 
